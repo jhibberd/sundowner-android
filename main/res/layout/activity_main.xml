@@ -1,4 +1,11 @@
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
-          android:id="@+id/listview"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
+<ListView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/list"
+    android:background="@color/app_background"
+    android:divider="@null"
+    android:dividerHeight="0dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:clipToPadding="false"
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent" />

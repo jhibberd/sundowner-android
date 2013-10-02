@@ -1,5 +1,6 @@
 package com.example.geotag;
 
+import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +30,14 @@ public class MainActivity extends ListActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // hide icon and title from the action bar
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
 
         // set default preferences (will not override user preferences)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
