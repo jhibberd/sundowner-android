@@ -11,22 +11,18 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
 
     private static final String TAG = "ObjectArrayAdapter";
     private final Context context;
     private final ArrayList<JSONObject> values;
-    private final DetailFormatter detailFormatter;
 
     public ObjectArrayAdapter(Context context, ArrayList<JSONObject> values) {
         super(context, R.layout.list_item_object, values);
         this.context = context;
         this.values = values;
-        detailFormatter = new DetailFormatter();
     }
 
     public boolean isEnabled(int position) {
@@ -61,20 +57,16 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
         }
 
         // populate view values
-        JSONObject object = null;
+        JSONObject object;
         try {
             object = values.get(position);
 
-            double distance = object.getDouble("distance");
             String username = object.getString("username");
-            String titleText = object.getString("title");
-            long created = object.getLong("created");
-
-            String detailText = detailFormatter.formatDetail(distance, created, username);
+            String titleText = object.getString("text");
 
             // set UI element values
             holder.title.setText(titleText);
-            holder.detail.setText(detailText);
+            holder.detail.setText(username);
 
         } catch (JSONException e) {
             Log.d(TAG, "Badly formed JSON from server");

@@ -32,8 +32,13 @@ public class ServerGetObjects {
 
         double longitude = currentLocation.getLongitude();
         double latitude = currentLocation.getLatitude();
+
+        // TODO testing
+        longitude = 101.714834785;
+        latitude = 3.098744131;
+
         String urlSpec = String.format(
-            "http://199.101.48.101:8051/?longitude=%f&latitude=%f&user_id=aaaaaaaaaaaaaaaaaaaaaaaa", longitude, latitude);
+            "http://199.101.48.101:8051/content?lng=%f&lat=%f&user_id=cccccccccccccccccccccccc", longitude, latitude);
 
         try {
             URL url = new URL(urlSpec);
@@ -48,19 +53,12 @@ public class ServerGetObjects {
 
     private class JSONHTTPRequest extends AsyncTask<URL, Void, JSONObject> {
 
-        private final int BYTE_ARRAY_BUFFER_SIZE = 50; /* initial buffer capacity */
-        private final int BUFFER_SIZE = 512;
-        private final String TEXT_ENCODING = "UTF-8";
-
         @Override
         protected JSONObject doInBackground(URL... urls) {
             try {
                 return get(urls[0]);
-            } catch (JSONException e) {
-                Log.d(TAG, "Server returned badly formed JSON");
-                return null;
-            } catch (IOException e) {
-                Log.d(TAG, "IO Error during request");
+            } catch (ServerException e) {
+                Log.e(TAG, "Error response from server: " + e.data.toString());
                 return null;
             }
         }
@@ -70,26 +68,52 @@ public class ServerGetObjects {
             delegate.onObjectsObtainedFromServer(data);
         }
 
-        private JSONObject get(URL url) throws IOException, JSONException {
-            InputStream is = null;
+        private JSONObject get(URL url) throws ServerException {
+            InputStream is;
+            HttpURLConnection conn = null;
             try {
 
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn = (HttpURLConnection) url.openConnection();
                 conn.setReadTimeout(10000 /* milliseconds */);
                 conn.setConnectTimeout(15000 /* milliseconds */);
                 conn.setRequestMethod("GET");
                 conn.setDoInput(true);
                 conn.connect();
 
-                // TODO check the response code and handle errors
-                //int response = conn.getResponseCode();
-
-                // read input stream to string; based on
-                // http://stackoverflow.com/questions/2793168/reading-httpurlconnection-inputstream-manual-buffer-or-bufferedinputstream
                 is = conn.getInputStream();
+                String response = readInputStream(is);
+                return jsonDecode(response);
+
+            } catch (IOException input_e) {
+                // attempt to read the error response from the server (if there is once)
+                JSONObject errorResponse = null;
+                if (conn != null) {
+                    is = conn.getErrorStream();
+                    if (is != null) {
+                        try {
+                            String data = readInputStream(is);
+                            errorResponse = jsonDecode(data);
+                        } catch (IOException error_e) {
+                            Log.e(TAG, "Failed to read from error stream.");
+                        }
+                    }
+                }
+                throw new ServerException(errorResponse);
+            }
+        }
+
+        private final int BYTE_ARRAY_BUFFER_SIZE = 50; /* initial buffer capacity */
+        private final int BUFFER_SIZE = 512;
+        private final String TEXT_ENCODING = "UTF-8";
+
+        // Read the contents of an input stream to a String object.
+        // Based on:
+        // http://stackoverflow.com/questions/2793168/reading-httpurlconnection-inputstream-manual-buffer-or-bufferedinputstream
+        private String readInputStream(InputStream is) throws IOException {
+            try {
                 BufferedInputStream bis = new BufferedInputStream(is);
                 ByteArrayBuffer bab = new ByteArrayBuffer(BYTE_ARRAY_BUFFER_SIZE);
-                int bytesRead = 0;
+                int bytesRead;
                 byte[] buffer = new byte[BUFFER_SIZE];
                 while (true) {
                     bytesRead = bis.read(buffer);
@@ -97,18 +121,23 @@ public class ServerGetObjects {
                         break;
                     bab.append(buffer, 0, bytesRead);
                 }
-                String content = new String(bab.toByteArray(), TEXT_ENCODING);
-                return new JSONObject(content);
-
+                return new String(bab.toByteArray(), TEXT_ENCODING);
             } finally {
-                if (is != null) {
-                    /* according to the docs any resources associated with the resource are also
-                     * released, which would suggest there's no need to explicitly close the
-                     * HttpURLConnection object:
-                     * http://developer.android.com/reference/java/io/BufferedInputStream.html#close()
-                     */
-                    is.close();
-                }
+                // according to the docs any resources associated with the resource are also
+                // released, which would suggest there's no need to explicitly close the
+                // HttpURLConnection object:
+                // http://developer.android.com/reference/java/io/BufferedInputStream.html#close()
+                is.close();
+            }
+        }
+
+        // All communication to and from the server is encoded as JSON.
+        private JSONObject jsonDecode(String data) {
+            try {
+                return new JSONObject(data);
+            } catch (JSONException e) {
+                Log.e(TAG, "Server response isn't valid JSON: " + data);
+                return null;
             }
         }
     }
