@@ -2,7 +2,6 @@ package com.example.geotag;
 
 import android.content.Context;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -44,9 +43,7 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
         ViewHolder holder;
         View view;
         if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater)
-                    context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.list_item_object, parent, false);
+            view = new ContentView(context);
             holder = new ViewHolder();
             holder.title = (TextView) view.findViewById(R.id.title);
             holder.detail = (TextView) view.findViewById(R.id.detail);
@@ -66,7 +63,8 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
 
             // set UI element values
             holder.title.setText(titleText);
-            holder.detail.setText(username);
+            //holder.detail.setText(username);
+            holder.detail.setText("boom2");
 
         } catch (JSONException e) {
             Log.d(TAG, "Badly formed JSON from server");
