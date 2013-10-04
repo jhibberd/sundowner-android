@@ -64,7 +64,7 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
             // set UI element values
             holder.title.setText(titleText);
             //holder.detail.setText(username);
-            holder.detail.setText("boom2");
+            holder.detail.setText("boom 3");
 
         } catch (JSONException e) {
             Log.d(TAG, "Badly formed JSON from server");

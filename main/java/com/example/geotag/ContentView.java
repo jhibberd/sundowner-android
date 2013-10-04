@@ -8,7 +8,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 
-// TODO the XML layout file probably doesn't need a LinearLayout element
 public class ContentView extends LinearLayout {
 
     private GestureDetector gestureDetector;
@@ -21,12 +20,8 @@ public class ContentView extends LinearLayout {
         setLongClickable(true);
     }
 
-    public ContentView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
     public ContentView(Context context) {
-        this(context, null);
+        this(context, null, 0);
     }
 
     @Override

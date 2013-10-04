@@ -22,4 +22,9 @@
         android:text="@+id/detail"
         android:textColor="@android:color/darker_gray"
         android:textSize="12sp" />
+    <com.example.geotag.LikeContentView
+        android:id="@+id/likeContent"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        />
 </LinearLayout>
