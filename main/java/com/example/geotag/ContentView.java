@@ -1,8 +1,10 @@
 package com.example.geotag;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Paint;
 import android.os.Handler;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,18 +21,41 @@ public class ContentView extends RelativeLayout {
         public void onContentViewLongTap(int position);
     }
 
+    private static final String TAG = "ContentView";
     private static final int STRIKETHROUGH_DELAY = 2000;
     private GestureDetector gestureDetector;
     private Delegate delegate;
     private int position; // index of content data in list
+    private int textColor;
+    private boolean hasURL;
+    private TextView text;
+    private TextView author;
 
     public ContentView(Context context, int position, Delegate delegate) {
+
         super(context, null, 0);
         this.position = position;
         this.delegate = delegate;
         View.inflate(context, R.layout.list_item_object, this);
         gestureDetector = new GestureDetector(context, new GestureListener());
         setLongClickable(true);
+
+        // more efficient when reusing class for new content
+        text = (TextView)findViewById(R.id.text);
+        author = (TextView)findViewById(R.id.author);
+    }
+
+    public void setContent(String text, String author, String url) {
+        hasURL = url != null;
+        Resources res = getResources();
+        if (res == null) {
+            Log.e(TAG, "Failed to get resources.");
+            return;
+        }
+        textColor = res.getColor(hasURL ? R.color.link : R.color.text);
+        this.text.setText(text);
+        this.text.setTextColor(textColor);
+        this.author.setText("by " + author);
     }
 
     @Override
@@ -43,39 +68,57 @@ public class ContentView extends RelativeLayout {
 
         @Override
         public void onLongPress(MotionEvent event) {
-
-            // being vote down animation
-            TextView v = (TextView)findViewById(R.id.text);
-            v.setPaintFlags(v.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-            v.setTextColor(getResources().getColor(R.color.background_text));
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    TextView v = (TextView)findViewById(R.id.text);
-                    v.setTextColor(getResources().getColor(R.color.text));
-                    v.setPaintFlags(v.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
-                }
-            }, STRIKETHROUGH_DELAY);
-
+            beginVoteDownAnimation();
             delegate.onContentViewLongTap(position);
         }
 
         @Override
         public boolean onDoubleTap(MotionEvent event) {
-
-            // begin vote up animation
-            View v = findViewById(R.id.likeContent);
-            Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.content_like);
-            v.startAnimation(animation);
-
+            beginVoteUpAnimation();
             delegate.onContentViewDoubleTap(position);
             return true;
         }
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent event) {
-            delegate.onContentViewSingleTap(position);
+            if (hasURL) {
+                delegate.onContentViewSingleTap(position);
+            }
             return true;
+        }
+
+        private void beginVoteDownAnimation() {
+            Resources res = getResources();
+            if (res == null) {
+                Log.e(TAG, "Failed to get resources.");
+                return;
+            }
+            TextView v = (TextView)findViewById(R.id.text);
+            v.setPaintFlags(v.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            v.setTextColor(res.getColor(R.color.background_text));
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    TextView v = (TextView)findViewById(R.id.text);
+                    v.setTextColor(textColor);
+                    v.setPaintFlags(v.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+                }
+            }, STRIKETHROUGH_DELAY);
+        }
+
+        private void beginVoteUpAnimation() {
+            Context ctx = getContext();
+            if (ctx == null) {
+                Log.e(TAG, "Failed to get context.");
+                return;
+            }
+            View v = findViewById(R.id.likeContent);
+            Animation animation = AnimationUtils.loadAnimation(ctx, R.anim.content_like);
+            if (animation == null) {
+                Log.e(TAG, "Failed to get animation resource.");
+                return;
+            }
+            v.startAnimation(animation);
         }
     }
 

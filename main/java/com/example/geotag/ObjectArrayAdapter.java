@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,59 +15,32 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
 
     private static final String TAG = "ObjectArrayAdapter";
     private final Context context;
-    private final ArrayList<JSONObject> values;
+    private final ArrayList<JSONObject> data;
     private ContentView.Delegate contentViewDelegate;
 
     public ObjectArrayAdapter(
             Context context,
-            ArrayList<JSONObject> values,
+            ArrayList<JSONObject> data,
             ContentView.Delegate contentViewDelegate) {
-        super(context, R.layout.list_item_object, values);
+
+        super(context, R.layout.list_item_object, data);
         this.context = context;
-        this.values = values;
+        this.data = data;
         this.contentViewDelegate = contentViewDelegate;
-    }
-
-    public boolean isEnabled(int position) {
-        return false;
-    }
-
-    /* ViewHolder pattern for smoother scrolling
-     * http://developer.android.com/training/improving-layouts/smooth-scrolling.html#ViewHolder
-     */
-    private static class ViewHolder {
-        TextView title;
-        TextView detail;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        // reuse views for save memory
-        ViewHolder holder;
-        View view;
-        if (convertView == null) {
-            view = new ContentView(context, position, contentViewDelegate);
-            holder = new ViewHolder();
-            holder.title = (TextView)view.findViewById(R.id.text);
-            holder.detail = (TextView)view.findViewById(R.id.author);
-            view.setTag(holder);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
-            view = convertView;
-        }
+        ContentView view = convertView == null ?
+            new ContentView(context, position, contentViewDelegate) : (ContentView)convertView;
 
-        // populate view values
-        JSONObject object;
         try {
-            object = values.get(position);
-
-            String username = object.getString("username");
-            String titleText = object.getString("text");
-
-            // set UI element values
-            holder.title.setText(titleText);
-            holder.detail.setText(username);
+            JSONObject content = data.get(position);
+            String author = content.getString("username");
+            String text = content.getString("text");
+            String url = content.getString("url");
+            view.setContent(text, author, url);
 
         } catch (JSONException e) {
             Log.d(TAG, "Badly formed JSON from server");

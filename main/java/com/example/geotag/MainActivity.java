@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -88,14 +89,30 @@ public class MainActivity extends ListActivity implements
     }
 
     public void onContentViewSingleTap(int position) {
-        Log.d(TAG, "BOOM onSingleTapConfirmed");
+
+        JSONObject content = objects.get(position);
+
+        String url;
+        try {
+            url = content.getString("url");
+        } catch (JSONException e) {
+            Log.e(TAG, "Content doesn't contain a URL field");
+            return;
+        }
+
+        // visit the URL
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
     public void onContentViewDoubleTap(int position) {
+
+        // TODO notify the server
         Log.d(TAG, "BOOM onDoubleTapConfirmed");
     }
 
     public void onContentViewLongTap(int position) {
+
+        // TODO notify the server
         Log.d(TAG, "BOOM onLongTapConfirmed");
     }
 
