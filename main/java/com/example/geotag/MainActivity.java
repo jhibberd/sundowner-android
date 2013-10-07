@@ -21,7 +21,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class MainActivity extends ListActivity implements
-        LocationAgent.Delegate, ServerGetObjects.Delegate {
+        LocationAgent.Delegate, ServerGetObjects.Delegate, ContentView.Delegate {
 
     private static final String TAG = "MainActivity";
     ArrayList<JSONObject> objects;
@@ -43,7 +43,7 @@ public class MainActivity extends ListActivity implements
 
         // bind objects array, adapter and list view
         objects = new ArrayList<JSONObject>();
-        adapter = new ObjectArrayAdapter(this, objects);
+        adapter = new ObjectArrayAdapter(this, objects, this);
         setListAdapter(adapter);
 
         refreshObjects();
@@ -85,6 +85,18 @@ public class MainActivity extends ListActivity implements
         LocationManager locationManager =
                 (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         new LocationAgent().getCurrentLocation(locationManager, this);
+    }
+
+    public void onContentViewSingleTap(int position) {
+        Log.d(TAG, "BOOM onSingleTapConfirmed");
+    }
+
+    public void onContentViewDoubleTap(int position) {
+        Log.d(TAG, "BOOM onDoubleTapConfirmed");
+    }
+
+    public void onContentViewLongTap(int position) {
+        Log.d(TAG, "BOOM onLongTapConfirmed");
     }
 
     private void composeObject() {

@@ -17,11 +17,16 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
     private static final String TAG = "ObjectArrayAdapter";
     private final Context context;
     private final ArrayList<JSONObject> values;
+    private ContentView.Delegate contentViewDelegate;
 
-    public ObjectArrayAdapter(Context context, ArrayList<JSONObject> values) {
+    public ObjectArrayAdapter(
+            Context context,
+            ArrayList<JSONObject> values,
+            ContentView.Delegate contentViewDelegate) {
         super(context, R.layout.list_item_object, values);
         this.context = context;
         this.values = values;
+        this.contentViewDelegate = contentViewDelegate;
     }
 
     public boolean isEnabled(int position) {
@@ -43,10 +48,10 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
         ViewHolder holder;
         View view;
         if (convertView == null) {
-            view = new ContentView(context);
+            view = new ContentView(context, position, contentViewDelegate);
             holder = new ViewHolder();
-            holder.title = (TextView) view.findViewById(R.id.title);
-            holder.detail = (TextView) view.findViewById(R.id.detail);
+            holder.title = (TextView)view.findViewById(R.id.text);
+            holder.detail = (TextView)view.findViewById(R.id.author);
             view.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -63,8 +68,7 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
 
             // set UI element values
             holder.title.setText(titleText);
-            //holder.detail.setText(username);
-            holder.detail.setText("boom 3");
+            holder.detail.setText(username);
 
         } catch (JSONException e) {
             Log.d(TAG, "Badly formed JSON from server");
