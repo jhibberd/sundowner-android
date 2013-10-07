@@ -6,9 +6,11 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.RelativeLayout;
 
-public class ContentView extends LinearLayout {
+public class ContentView extends RelativeLayout {
 
     private GestureDetector gestureDetector;
 
@@ -42,6 +44,13 @@ public class ContentView extends LinearLayout {
         @Override
         public boolean onDoubleTap(MotionEvent event) {
             Log.d(DEBUG_TAG, "onDoubleTap: " + event.toString());
+
+            // TODO proof on concept but this object should accept a delegate which is notified
+            // of these gesture events
+            View v = (View)findViewById(R.id.likeContent);
+            Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.content_like);
+            v.startAnimation(animation);
+
             return true;
         }
 

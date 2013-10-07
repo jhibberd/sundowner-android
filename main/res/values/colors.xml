@@ -2,4 +2,5 @@
 <resources>
     <color name="content_background">#ffffff</color>
     <color name="app_background">#eeeeee</color>
+    <color name="like">#eb5b54</color>
 </resources>

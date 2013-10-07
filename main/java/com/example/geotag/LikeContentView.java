@@ -42,7 +42,7 @@ public class LikeContentView extends View {
 
             PathShape shape = new PathShape(path, w, h);
             drawable = new ShapeDrawable(shape);
-            drawable.getPaint().setColor(0xff74AC23);
+            drawable.getPaint().setColor(getResources().getColor(R.color.like));
             drawable.setBounds(0, 0, w, h);
         }
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/list_item_background"
@@ -17,6 +16,7 @@
         android:textSize="22sp" />
     <TextView
         android:id="@+id/detail"
+        android:layout_below="@id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@+id/detail"
@@ -24,7 +24,9 @@
         android:textSize="12sp" />
     <com.example.geotag.LikeContentView
         android:id="@+id/likeContent"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:visibility="invisible"
+        android:layout_centerInParent="true"
+        android:layout_width="77dp"
+        android:layout_height="66.5dp"
         />
-</LinearLayout>
+</RelativeLayout>
