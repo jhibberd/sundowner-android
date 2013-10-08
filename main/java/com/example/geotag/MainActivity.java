@@ -15,6 +15,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.example.geotag.api.ServerGetObjects;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 public class MainActivity extends ListActivity implements
         LocationAgent.Delegate, ServerGetObjects.Delegate, ContentView.Delegate {
 
+    private static final String STATE_CONTENT = "content";
     private static final String TAG = "MainActivity";
     ArrayList<JSONObject> objects;
     ObjectArrayAdapter adapter;

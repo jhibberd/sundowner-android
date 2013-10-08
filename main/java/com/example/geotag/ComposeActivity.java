@@ -1,5 +1,6 @@
 package com.example.geotag;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -8,14 +9,12 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.preference.PreferenceManager;
 import android.text.Editable;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.geotag.api.ServerPostObject;
 
 public class ComposeActivity extends Activity implements
     LocationAgent.Delegate, ServerPostObject.Delegate {
@@ -24,16 +23,14 @@ public class ComposeActivity extends Activity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
-        setupActionBar();
-    }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void setupActionBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        // hide icon and title from the action bar
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
     }
 
     @Override
@@ -47,16 +44,6 @@ public class ComposeActivity extends Activity implements
         switch (item.getItemId()) {
             case R.id.action_accept:
                 submitPost();
-                return true;
-            case android.R.id.home:
-                // This ID represents the Home or Up button. In the case of this
-                // activity, the Up button is shown. Use NavUtils to allow users
-                // to navigate up one level in the application structure. For
-                // more details, see the Navigation pattern on Android Design:
-                //
-                // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-                //
-                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -74,15 +61,13 @@ public class ComposeActivity extends Activity implements
 
     private void submitPost() {
 
-        /* Disable the accept action bar menu item to prevent the user from pressing it repeatedly
-         * while a submission is in progress and submitting multiple copies of the same object.
-         */
+        // Disable the accept action bar menu item to prevent the user from pressing it repeatedly
+        // while a submission is in progress and submitting multiple copies of the same object.
         isAcceptActionEnabled = false;
         invalidateOptionsMenu();
 
-        /* Asynchronously request the current device location. This begins a chain of asynchronous
-         * requests that ends with the listview being updated with new objects.
-         */
+        // Asynchronously request the current device location. This begins a chain of asynchronous
+        // requests that ends with the listview being updated with new objects.
         LocationManager locationManager =
                 (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         new LocationAgent().getCurrentLocation(locationManager, this);

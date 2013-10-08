@@ -1,4 +1,4 @@
-package com.example.geotag;
+package com.example.geotag.api;
 
 import org.json.JSONObject;
 

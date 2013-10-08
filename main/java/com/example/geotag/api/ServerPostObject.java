@@ -1,4 +1,4 @@
-package com.example.geotag;
+package com.example.geotag.api;
 
 import android.location.Location;
 import android.os.AsyncTask;

@@ -1,4 +1,4 @@
-package com.example.geotag;
+package com.example.geotag.api;
 
 import android.location.Location;
 import android.os.AsyncTask;
@@ -15,9 +15,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-/* Abstracts logic for obtaining nearby objects; based on:
- * http://developer.android.com/training/basics/network-ops/connecting.html
- */
+// Abstracts logic for obtaining nearby objects; based on:
+// http://developer.android.com/training/basics/network-ops/connecting.html
 public class ServerGetObjects {
 
     public interface Delegate {
