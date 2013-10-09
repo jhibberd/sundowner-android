@@ -58,7 +58,7 @@ public class MainActivity extends ListActivity implements
     public void onObtainedCurrentLocation(Location location) {
 
         // use the current location to asynchronously request nearby objects from the server
-        new EndpointContentGET(location.getLongitude(), location.getLatitude(), null, this).call();
+        new EndpointContentGET(location.getLongitude(), location.getLatitude(), this).call();
     }
 
     public void onEndpointContentGETResponse(JSONObject data) {
