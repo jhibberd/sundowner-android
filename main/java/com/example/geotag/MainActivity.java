@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -15,7 +16,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.example.geotag.api.ServerGetObjects;
+import com.example.geotag.api.EndpointContentGET;
+import com.example.geotag.api.EndpointVotesPOST;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,9 +26,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class MainActivity extends ListActivity implements
-        LocationAgent.Delegate, ServerGetObjects.Delegate, ContentView.Delegate {
+        LocationAgent.Delegate, EndpointContentGET.Delegate, ContentView.Delegate {
 
-    private static final String STATE_CONTENT = "content";
     private static final String TAG = "MainActivity";
     ArrayList<JSONObject> objects;
     ObjectArrayAdapter adapter;
@@ -57,11 +58,10 @@ public class MainActivity extends ListActivity implements
     public void onObtainedCurrentLocation(Location location) {
 
         // use the current location to asynchronously request nearby objects from the server
-        new ServerGetObjects().getServerObjects(location, this);
+        new EndpointContentGET(location.getLongitude(), location.getLatitude(), null, this).call();
     }
 
-    @Override
-    public void onObjectsObtainedFromServer(JSONObject data) {
+    public void onEndpointContentGETResponse(JSONObject data) {
 
         // extract objects from the response data and convert to ArrayList object for compatibility
         // with the adapter
@@ -72,7 +72,7 @@ public class MainActivity extends ListActivity implements
             for (int i = 0; i < numObjects; i++)
                 objects.add(values.getJSONObject(i));
         } catch (JSONException e) {
-            Log.d(TAG, "Badly formed JSON in server response");
+            Log.d(TAG, "Badly formed JSON in server response: " + data.toString());
             return;
         }
 
@@ -92,31 +92,52 @@ public class MainActivity extends ListActivity implements
     }
 
     public void onContentViewSingleTap(int position) {
-
-        JSONObject content = objects.get(position);
-
-        String url;
+        // open the URL associated with the content in the browser
         try {
-            url = content.getString("url");
-        } catch (JSONException e) {
-            Log.e(TAG, "Content doesn't contain a URL field");
-            return;
-        }
 
-        // visit the URL
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+            JSONObject content = objects.get(position);
+            String url = content.getString("url");
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to view content as local content is badly formed");
+        }
     }
 
     public void onContentViewDoubleTap(int position) {
+        // notify the server that the content has been voted up
+        try {
 
-        // TODO notify the server
-        Log.d(TAG, "BOOM onDoubleTapConfirmed");
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+            String defaultUsername = getResources().getString(R.string.preference_username_default);
+            String userId = sharedPrefs.getString("username", defaultUsername);
+
+            JSONObject content = objects.get(position);
+            String contentId = content.getString("id");
+
+            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.UP).call();
+
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to up vote content as local content is badly formed");
+        }
     }
 
     public void onContentViewLongTap(int position) {
+        // notify the server that the content has been voted down
+        try {
 
-        // TODO notify the server
-        Log.d(TAG, "BOOM onLongTapConfirmed");
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+            String defaultUsername = getResources().getString(R.string.preference_username_default);
+            String userId = sharedPrefs.getString("username", defaultUsername);
+
+            JSONObject content = objects.get(position);
+            String contentId = content.getString("id");
+
+            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.DOWN).call();
+
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to down vote content as local content is badly formed");
+        }
     }
 
     private void composeObject() {

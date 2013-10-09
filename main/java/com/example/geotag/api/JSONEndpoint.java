@@ -1,6 +1,6 @@
 package com.example.geotag.api;
 
-import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,53 +9,53 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-// Abstracts logic for obtaining nearby objects; based on:
-// http://developer.android.com/training/basics/network-ops/connecting.html
-public class ServerGetObjects {
+public abstract class JSONEndpoint {
 
-    public interface Delegate {
-        public void onObjectsObtainedFromServer(JSONObject data);
+    protected enum HTTPMethod {
+        GET,
+        POST
     }
 
-    private static final String TAG = "ServerGetObjects";
-    private Delegate delegate;
+    private static final String TAG = "JSONEndpoint";
+    private static final String ENDPOINT_ROOT = "http://199.101.48.101:8050";
+    private HTTPMethod method;
 
-    public void getServerObjects(Location currentLocation, Delegate delegate) {
-        this.delegate = delegate;
-
-        double longitude = currentLocation.getLongitude();
-        double latitude = currentLocation.getLatitude();
-
-        // TODO testing
-        longitude = 101.714834785;
-        latitude = 3.098744131;
-
-        String urlSpec = String.format(
-            "http://199.101.48.101:8051/content?lng=%f&lat=%f&user_id=cccccccccccccccccccccccc", longitude, latitude);
-
-        try {
-            URL url = new URL(urlSpec);
-            new JSONHTTPRequest().execute(url);
-
-        } catch (MalformedURLException e) {
-            // for now just notify the delegate that no objects were obtained
-            Log.d(TAG, "Badly formed URL");
-            this.delegate.onObjectsObtainedFromServer(null);
-        }
+    public JSONEndpoint(HTTPMethod method) {
+        this.method = method;
     }
 
-    private class JSONHTTPRequest extends AsyncTask<URL, Void, JSONObject> {
+    public void call() {
+
+        // subclass to define the URI
+        Uri.Builder uriBuilder = Uri.parse(ENDPOINT_ROOT).buildUpon();
+        buildURI(uriBuilder);
+        Uri uri = uriBuilder.build();
+
+        new AsyncRequest().execute(uri);
+    }
+
+    protected abstract void buildURI(Uri.Builder uriBuilder);
+    protected abstract void onResponseReceived(JSONObject data);
+
+    protected JSONObject getRequestBody() {
+        // should be implemented by the subclass if the endpoint expects a request body
+        return null;
+    }
+
+    // abstraction of logic for issuing HTTP request
+    // http://developer.android.com/training/basics/network-ops/connecting.html
+    protected class AsyncRequest extends AsyncTask<Uri, Void, JSONObject> {
 
         @Override
-        protected JSONObject doInBackground(URL... urls) {
+        protected JSONObject doInBackground(Uri... uris) {
             try {
-                return get(urls[0]);
+                return request(uris[0]);
             } catch (ServerException e) {
                 Log.e(TAG, "Error response from server: " + e.data.toString());
                 return null;
@@ -64,20 +64,50 @@ public class ServerGetObjects {
 
         @Override
         protected void onPostExecute(JSONObject data) {
-            delegate.onObjectsObtainedFromServer(data);
+            onResponseReceived(data);
         }
 
-        private JSONObject get(URL url) throws ServerException {
+        private final int READ_TIMEOUT = 10000; // milliseconds
+        private final int WRITE_TIMEOUT = 15000; // milliseconds
+
+        private JSONObject request(Uri uri) throws ServerException {
             InputStream is;
             HttpURLConnection conn = null;
             try {
 
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setReadTimeout(10000 /* milliseconds */);
-                conn.setConnectTimeout(15000 /* milliseconds */);
-                conn.setRequestMethod("GET");
+                URL url = new URL(uri.toString());
+                conn = (HttpURLConnection)url.openConnection();
+                conn.setReadTimeout(READ_TIMEOUT);
+                conn.setConnectTimeout(WRITE_TIMEOUT);
                 conn.setDoInput(true);
-                conn.connect();
+
+                switch (method) {
+                    case GET:
+                        conn.setRequestMethod("GET");
+                        conn.connect();
+                        break;
+
+                    case POST:
+
+                        JSONObject body = getRequestBody();
+                        conn.setRequestMethod("POST");
+                        if (body != null) {
+                            conn.setRequestProperty("Content-Type", "application/json");
+                            conn.setDoOutput(true);
+                        }
+                        conn.connect();
+
+                        if (body != null) {
+                            DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+                            os.writeBytes(body.toString());
+                            os.flush();
+                            os.close();
+                        }
+                        break;
+
+                    default:
+
+                }
 
                 is = conn.getInputStream();
                 String response = readInputStream(is);
@@ -106,7 +136,6 @@ public class ServerGetObjects {
         private final String TEXT_ENCODING = "UTF-8";
 
         // Read the contents of an input stream to a String object.
-        // Based on:
         // http://stackoverflow.com/questions/2793168/reading-httpurlconnection-inputstream-manual-buffer-or-bufferedinputstream
         private String readInputStream(InputStream is) throws IOException {
             try {

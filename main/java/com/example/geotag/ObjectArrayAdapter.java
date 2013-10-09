@@ -39,7 +39,7 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
             JSONObject content = data.get(position);
             String author = content.getString("username");
             String text = content.getString("text");
-            String url = content.getString("url");
+            String url = content.isNull("url") ? null : content.getString("url");
             view.setContent(text, author, url);
 
         } catch (JSONException e) {

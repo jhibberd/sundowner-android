@@ -9,16 +9,20 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.preference.PreferenceManager;
 import android.text.Editable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.geotag.api.ServerPostObject;
+import com.example.geotag.api.EndpointContentPOST;
+
+import org.json.JSONObject;
 
 public class ComposeActivity extends Activity implements
-    LocationAgent.Delegate, ServerPostObject.Delegate {
+    LocationAgent.Delegate, EndpointContentPOST.Delegate {
 
+    private static final String TAG = "ComposeActivity";
     private boolean isAcceptActionEnabled = true;
 
     @Override
@@ -77,28 +81,35 @@ public class ComposeActivity extends Activity implements
     @Override
     public void onObtainedCurrentLocation(Location location) {
 
-        // read the username from the preferences
+        // read the user ID from the preferences
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String defaultUsername = getResources().getString(R.string.preference_username_default);
         String username = sharedPrefs.getString("username", defaultUsername);
 
-        // get object title entered by the user
-        // TODO is this really the best way to handle NullPointerExceptions in Java?
-        String title = null;
-        EditText editText = (EditText) findViewById(R.id.object_title);
+        // get text entered by the user
+        String text = null;
+        EditText editText = (EditText)findViewById(R.id.object_title);
         if (editText != null) {
-            Editable text = editText.getText();
-            if (text != null) {
-                title = text.toString();
+            Editable editable = editText.getText();
+            if (editable != null) {
+                text = editable.toString();
             }
         }
+        if (text == null) {
+            Log.e(TAG, "Unable to read text from UI control");
+            return;
+        }
 
-        new ServerPostObject().postObjectToServer(location, title, username, this);
+        new EndpointContentPOST(
+            location.getLongitude(), location.getLatitude(), location.getAccuracy(), text,
+            username, this).call();
     }
 
     @Override
-    public void onObjectPostedToServer(boolean didSucceed) {
-        if (didSucceed) {
+    public void onEndpointContentPOSTResponse(JSONObject data) {
+        Log.i(TAG, data.toString());
+        // TODO check response
+        if (true) {
             Toast.makeText(getApplicationContext(), "Posted", Toast.LENGTH_SHORT).show();
             finish();
         } else {
