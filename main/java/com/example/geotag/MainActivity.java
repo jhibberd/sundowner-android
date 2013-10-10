@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.example.geotag.api.EndpointContentGET;
 import com.example.geotag.api.EndpointVotesPOST;
+import com.example.geotag.view.ContentView;
 
 import org.json.JSONArray;
 import org.json.JSONException;

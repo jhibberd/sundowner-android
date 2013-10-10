@@ -3,26 +3,28 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/list_item_background"
+    android:background="@drawable/content_background"
     android:paddingTop="15dp"
     android:paddingRight="20dp"
     android:paddingBottom="15dp"
-    android:paddingLeft="20dp">
+    android:paddingLeft="20dp"
+    >
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@+id/title"
-        android:textSize="22sp" />
+        android:textSize="22sp"
+        />
     <TextView
         android:id="@+id/author"
         android:layout_below="@id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@+id/detail"
         android:textColor="@android:color/darker_gray"
-        android:textSize="12sp" />
-    <com.example.geotag.LikeContentView
+        android:textSize="12sp"
+        />
+    <com.example.geotag.view.LikeContentView
         android:id="@+id/likeContent"
         android:visibility="invisible"
         android:layout_centerInParent="true"

@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import com.example.geotag.view.ContentView;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,7 +25,7 @@ public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
             ArrayList<JSONObject> data,
             ContentView.Delegate contentViewDelegate) {
 
-        super(context, R.layout.list_item_object, data);
+        super(context, R.layout.view_content, data);
         this.context = context;
         this.data = data;
         this.contentViewDelegate = contentViewDelegate;

@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.geotag.api.EndpointContentPOST;
+import com.example.geotag.view.ComposeView;
 
 import org.json.JSONObject;
 
@@ -86,17 +87,10 @@ public class ComposeActivity extends Activity implements
         String defaultUsername = getResources().getString(R.string.preference_username_default);
         String username = sharedPrefs.getString("username", defaultUsername);
 
-        // get text entered by the user
-        String text = null;
-        EditText editText = (EditText)findViewById(R.id.object_title);
-        if (editText != null) {
-            Editable editable = editText.getText();
-            if (editable != null) {
-                text = editable.toString();
-            }
-        }
+        ComposeView composeView = (ComposeView)findViewById(R.id.compose_view);
+        String text = composeView.getText();
         if (text == null) {
-            Log.e(TAG, "Unable to read text from UI control");
+            Log.e(TAG, "ComposeView returned null text");
             return;
         }
 

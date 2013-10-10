@@ -1,4 +1,4 @@
-package com.example.geotag;
+package com.example.geotag.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,14 +8,12 @@ import android.graphics.drawable.shapes.PathShape;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.example.geotag.R;
+
 
 public class LikeContentView extends View {
 
     private ShapeDrawable drawable = null;
-
-    public LikeContentView(Context context) {
-        super(context);
-    }
 
     public LikeContentView(Context context, AttributeSet attrs) {
         super(context, attrs);

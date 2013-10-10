@@ -1,4 +1,4 @@
-package com.example.geotag;
+package com.example.geotag.view;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -12,6 +12,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.example.geotag.R;
 
 public class ContentView extends RelativeLayout {
 
@@ -33,10 +35,10 @@ public class ContentView extends RelativeLayout {
 
     public ContentView(Context context, int position, Delegate delegate) {
 
-        super(context, null, 0);
+        super(context);
         this.position = position;
         this.delegate = delegate;
-        View.inflate(context, R.layout.list_item_object, this);
+        View.inflate(context, R.layout.view_content, this);
         gestureDetector = new GestureDetector(context, new GestureListener());
         setLongClickable(true);
 

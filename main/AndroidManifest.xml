@@ -29,6 +29,7 @@
         <activity
             android:name="com.example.geotag.ComposeActivity"
             android:label="@string/title_activity_compose"
+            android:windowSoftInputMode="stateVisible"
             android:parentActivityName="com.example.geotag.MainActivity">
         </activity>
         <activity

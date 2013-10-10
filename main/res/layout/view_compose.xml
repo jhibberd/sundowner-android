@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@drawable/content_background"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="15dp"
+    android:paddingRight="20dp"
+    android:paddingBottom="15dp"
+    android:paddingLeft="20dp"
+    >
+    <EditText
+        android:id="@+id/text"
+        android:inputType="textMultiLine"
+        android:minLines="4"
+        android:gravity="top|left"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
+        android:paddingTop="3dp"
+        android:maxLines="20"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        />
+    <TextView
+        android:id="@+id/author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/darker_gray"
+        android:text="by James"
+        android:textSize="12sp"
+        />
+</LinearLayout>
