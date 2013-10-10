@@ -24,7 +24,7 @@
         android:textColor="@android:color/darker_gray"
         android:textSize="12sp"
         />
-    <com.example.geotag.view.LikeContentView
+    <com.sundowner.view.LikeContentView
         android:id="@+id/likeContent"
         android:visibility="invisible"
         android:layout_centerInParent="true"
