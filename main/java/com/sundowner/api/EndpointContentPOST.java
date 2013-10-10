@@ -17,12 +17,13 @@ public class EndpointContentPOST extends JSONEndpoint {
     private final double latitude;
     private final float accuracy;
     private final String text;
+    private final String url;
     private final String userId;
     private final Delegate delegate;
 
     public EndpointContentPOST(
-            double longitude, double latitude, float accuracy, String text, String userId,
-            Delegate delegate) {
+            double longitude, double latitude, float accuracy, String text, String url,
+            String userId, Delegate delegate) {
 
         super(HTTPMethod.POST);
 
@@ -33,6 +34,7 @@ public class EndpointContentPOST extends JSONEndpoint {
         this.latitude = latitude;
         this.accuracy = accuracy;
         this.text = text;
+        this.url = url;
         this.userId = userId;
         this.delegate = delegate;
     }
@@ -50,6 +52,9 @@ public class EndpointContentPOST extends JSONEndpoint {
             object.put("lat", latitude);
             object.put("accuracy", accuracy);
             object.put("text", text);
+            if (url != null) {
+                object.put("url", url);
+            }
             object.put("user_id", userId);
             return object;
         } catch (JSONException e) {

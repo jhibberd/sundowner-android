@@ -13,10 +13,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.android.gms.internal.ca;
 import com.sundowner.api.EndpointContentPOST;
 import com.sundowner.view.ComposeView;
 
 import org.json.JSONObject;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ComposeActivity extends Activity implements
     LocationAgent.Delegate, EndpointContentPOST.Delegate {
@@ -92,9 +98,46 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
+        Map<String, String> parsedText = parseText(text);
+
         new EndpointContentPOST(
-            location.getLongitude(), location.getLatitude(), location.getAccuracy(), text,
-            username, this).call();
+            location.getLongitude(), location.getLatitude(), location.getAccuracy(),
+            parsedText.get("text"), parsedText.get("url"), username, this).call();
+    }
+
+    // attempt to extract a URL from the content text
+    // http://stackoverflow.com/questions/285619/how-to-detect-the-presence-of-url-in-a-string
+    private Map<String, String> parseText(String originalText) {
+
+        StringBuilder text = new StringBuilder();
+        String url = null;
+
+        String[] words = originalText.split("\\s");
+        for (String word : words) {
+
+            boolean wordIsURL = false;
+            if (url == null) {
+                try {
+                    new URL(word);
+                    url = word;
+                    wordIsURL = true;
+                } catch (MalformedURLException e) {
+                    // word is not URL
+                }
+            }
+
+            if (!wordIsURL) {
+                if (text.length() > 0) {
+                    text.append(" ");
+                }
+                text.append(word);
+            }
+        }
+
+        HashMap<String, String> result = new HashMap<String, String>();
+        result.put("text", text.toString());
+        result.put("url", url);
+        return result;
     }
 
     @Override
