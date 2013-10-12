@@ -66,8 +66,10 @@ public class ComposeView extends LinearLayout {
             }
         }
 
+        String trimmedText = text.toString().trim();
+
         HashMap<String, String> result = new HashMap<String, String>();
-        result.put("text", text.toString());
+        result.put("text", trimmedText);
         result.put("url", url);
         return result;
     }

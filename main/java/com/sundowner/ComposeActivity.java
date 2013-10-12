@@ -16,6 +16,8 @@ import android.widget.Toast;
 import com.sundowner.api.EndpointContentPOST;
 import com.sundowner.view.ComposeView;
 
+import org.apache.http.HttpStatus;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
@@ -66,17 +68,13 @@ public class ComposeActivity extends Activity implements
 
     private void submitPost() {
 
-        // Disable the accept action bar menu item to prevent the user from pressing it repeatedly
-        // while a submission is in progress and submitting multiple copies of the same object.
-        isAcceptActionEnabled = false;
-        invalidateOptionsMenu();
+        setAcceptActionEnabled(false);
 
         // Asynchronously request the current device location. This begins a chain of asynchronous
         // requests that ends with the listview being updated with new objects.
         LocationManager locationManager =
                 (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         new LocationAgent().getCurrentLocation(locationManager, this);
-
     }
 
     @Override
@@ -94,20 +92,63 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
+        // prevent the user from making a post with no text
+        String text = parsedText.get("text");
+        if (text.length() == 0) {
+            Log.i(TAG, "Prevented empty content from being posted");
+            setAcceptActionEnabled(true);
+            return;
+        }
+
         new EndpointContentPOST(
             location.getLongitude(), location.getLatitude(), location.getAccuracy(),
-            parsedText.get("text"), parsedText.get("url"), username, this).call();
+            text, parsedText.get("url"), username, this).call();
     }
 
     @Override
     public void onEndpointContentPOSTResponse(JSONObject data) {
+
+        // TODO remove
         Log.i(TAG, data.toString());
-        // TODO check response
-        if (true) {
-            Toast.makeText(getApplicationContext(), "Posted", Toast.LENGTH_SHORT).show();
+
+        try {
+            int statusCode = data.getJSONObject("meta").getInt("code");
+            if (statusCode != HttpStatus.SC_CREATED) {
+                throw new PostFailedException();
+            }
+            Context ctx = getApplication();
+            if (ctx == null) {
+                Log.e(TAG, "Failed to get application context");
+                return;
+            }
+            Toast.makeText(ctx, "Posted", Toast.LENGTH_SHORT).show();
             finish();
-        } else {
-            Toast.makeText(getApplicationContext(), "Posting failed", Toast.LENGTH_SHORT).show();
+
+        } catch (PostFailedException e) {
+            Log.e(TAG, "Server returned failed status code");
+            onPostFailed();
+        } catch (JSONException e) {
+            Log.e(TAG, "Server returned bad meta field");
+            onPostFailed();
         }
+    }
+
+    private void onPostFailed() {
+        Context ctx = getApplication();
+        if (ctx == null) {
+            Log.e(TAG, "Failed to get application context");
+            return;
+        }
+        Toast.makeText(ctx, "Oops, posting failed", Toast.LENGTH_SHORT).show();
+        setAcceptActionEnabled(true); // so the user can try to submit again
+    }
+
+    private class PostFailedException extends Exception {}
+
+    // disable the accept action bar menu item to prevent the user from pressing it repeatedly
+    // while a submission is in progress and submitting multiple copies of the same object
+    private void setAcceptActionEnabled(boolean enabled) {
+        isAcceptActionEnabled = enabled;
+        invalidateOptionsMenu();
     }
 }
