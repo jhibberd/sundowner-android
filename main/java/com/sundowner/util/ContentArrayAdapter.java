@@ -1,4 +1,4 @@
-package com.sundowner;
+package com.sundowner.util;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import com.sundowner.R;
 import com.sundowner.view.ContentView;
 
 import org.json.JSONException;
@@ -13,14 +14,14 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class ObjectArrayAdapter extends ArrayAdapter<JSONObject> {
+public class ContentArrayAdapter extends ArrayAdapter<JSONObject> {
 
-    private static final String TAG = "ObjectArrayAdapter";
+    private static final String TAG = "ContentArrayAdapter";
     private final Context context;
     private final ArrayList<JSONObject> data;
     private ContentView.Delegate contentViewDelegate;
 
-    public ObjectArrayAdapter(
+    public ContentArrayAdapter(
             Context context,
             ArrayList<JSONObject> data,
             ContentView.Delegate contentViewDelegate) {

@@ -2,22 +2,25 @@ package com.sundowner;
 
 import android.app.ActionBar;
 import android.app.ListActivity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.sundowner.api.EndpointContentGET;
 import com.sundowner.api.EndpointVotesPOST;
+import com.sundowner.util.ContentArrayAdapter;
+import com.sundowner.util.LocationService;
 import com.sundowner.view.ContentView;
 
 import org.json.JSONArray;
@@ -26,18 +29,20 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends ListActivity implements
-        LocationAgent.Delegate, EndpointContentGET.Delegate, ContentView.Delegate {
+public class ReadActivity extends ListActivity implements
+        EndpointContentGET.Delegate, ContentView.Delegate, ServiceConnection,
+        LocationService.Delegate {
 
-    private static final String TAG = "MainActivity";
-    ArrayList<JSONObject> objects;
-    ObjectArrayAdapter adapter;
+    private static final String TAG = "ReadActivity";
+    private ArrayList<JSONObject> objects;
+    private ContentArrayAdapter adapter;
+    private boolean isLocationServiceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_read);
 
         // hide icon and title from the action bar
         ActionBar actionBar = getActionBar();
@@ -49,17 +54,28 @@ public class MainActivity extends ListActivity implements
 
         // bind objects array, adapter and list view
         objects = new ArrayList<JSONObject>();
-        adapter = new ObjectArrayAdapter(this, objects, this);
+        adapter = new ContentArrayAdapter(this, objects, this);
         setListAdapter(adapter);
-
-        refreshObjects();
     }
 
     @Override
-    public void onObtainedCurrentLocation(Location location) {
+    protected void onStart() {
+        super.onStart();
 
-        // use the current location to asynchronously request nearby objects from the server
-        new EndpointContentGET(location.getLongitude(), location.getLatitude(), this).call();
+        // bind to the LocationService
+        Intent intent = new Intent(this, LocationService.class);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // unbind from the LocationService is it's bound
+        if (isLocationServiceBound) {
+            unbindService(this);
+            isLocationServiceBound = false;
+        }
     }
 
     public void onEndpointContentGETResponse(JSONObject data) {
@@ -78,18 +94,7 @@ public class MainActivity extends ListActivity implements
         }
 
         adapter.notifyDataSetChanged();
-
-        // debug notification
-        Toast.makeText(getApplicationContext(), "Refreshed", Toast.LENGTH_SHORT).show();
-    }
-
-    private void refreshObjects() {
-
-        // Asynchronously request the current device location. This begins a chain of asynchronous
-        // requests that ends with the listview being updated with new objects.
-        LocationManager locationManager =
-                (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        new LocationAgent().getCurrentLocation(locationManager, this);
+        Log.i(TAG, "Updated displayed content");
     }
 
     public void onContentViewSingleTap(int position) {
@@ -155,16 +160,13 @@ public class MainActivity extends ListActivity implements
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.read, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_refresh:
-                refreshObjects();
-                return true;
             case R.id.action_compose:
                 composeObject();
                 return true;
@@ -174,5 +176,32 @@ public class MainActivity extends ListActivity implements
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    // called when connected to the LocationService
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+
+        LocationService.LocationServiceBinder locationService =
+                (LocationService.LocationServiceBinder) service;
+        isLocationServiceBound = true;
+        locationService.setDelegate(this);
+
+        // ask the location service to flush through it's current location instead of waiting for
+        // the next triggered location update notification
+        locationService.flushLocation();
+    }
+
+    // called when disconnected from the LocationService
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        isLocationServiceBound = false;
+    }
+
+    @Override
+    public void onLocationUpdate(Location location) {
+        Log.i(TAG, "Received location update");
+        // use the current location to asynchronously request nearby objects from the server
+        new EndpointContentGET(location.getLongitude(), location.getLatitude(), this).call();
     }
 }

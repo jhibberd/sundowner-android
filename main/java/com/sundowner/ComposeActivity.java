@@ -1,12 +1,15 @@
 package com.sundowner;
 
 import android.app.ActionBar;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +17,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.sundowner.api.EndpointContentPOST;
+import com.sundowner.util.LocationService;
 import com.sundowner.view.ComposeView;
 
 import org.apache.http.HttpStatus;
@@ -23,10 +27,12 @@ import org.json.JSONObject;
 import java.util.Map;
 
 public class ComposeActivity extends Activity implements
-    LocationAgent.Delegate, EndpointContentPOST.Delegate {
+    EndpointContentPOST.Delegate, ServiceConnection {
 
     private static final String TAG = "ComposeActivity";
     private boolean isAcceptActionEnabled = true;
+    private boolean isLocationServiceBound = false;
+    private LocationService.LocationServiceBinder locationService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,26 @@ public class ComposeActivity extends Activity implements
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayShowTitleEnabled(false);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // bind to the LocationService
+        Intent intent = new Intent(this, LocationService.class);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // unbind from the LocationService is it's bound
+        if (isLocationServiceBound) {
+            unbindService(this);
+            isLocationServiceBound = false;
+        }
     }
 
     @Override
@@ -70,15 +96,21 @@ public class ComposeActivity extends Activity implements
 
         setAcceptActionEnabled(false);
 
-        // Asynchronously request the current device location. This begins a chain of asynchronous
-        // requests that ends with the listview being updated with new objects.
-        LocationManager locationManager =
-                (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        new LocationAgent().getCurrentLocation(locationManager, this);
-    }
-
-    @Override
-    public void onObtainedCurrentLocation(Location location) {
+        // get the current device location
+        Location currentLocation = locationService.getCurrentLocation();
+        if (currentLocation == null) {
+            Context ctx = getApplication();
+            if (ctx == null) {
+                Log.e(TAG, "Failed to get application context");
+                return;
+            }
+            Toast.makeText(
+                ctx,
+                "Oops, can't get your current location. Try again in a few seconds.",
+                Toast.LENGTH_SHORT).show();
+            setAcceptActionEnabled(true);
+            return;
+        }
 
         // read the user ID from the preferences
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -101,16 +133,12 @@ public class ComposeActivity extends Activity implements
         }
 
         new EndpointContentPOST(
-            location.getLongitude(), location.getLatitude(), location.getAccuracy(),
-            text, parsedText.get("url"), username, this).call();
+            currentLocation.getLongitude(), currentLocation.getLatitude(),
+            currentLocation.getAccuracy(), text, parsedText.get("url"), username, this).call();
     }
 
     @Override
     public void onEndpointContentPOSTResponse(JSONObject data) {
-
-        // TODO remove
-        Log.i(TAG, data.toString());
-
         try {
             int statusCode = data.getJSONObject("meta").getInt("code");
             if (statusCode != HttpStatus.SC_CREATED) {
@@ -143,12 +171,23 @@ public class ComposeActivity extends Activity implements
         setAcceptActionEnabled(true); // so the user can try to submit again
     }
 
-    private class PostFailedException extends Exception {}
-
     // disable the accept action bar menu item to prevent the user from pressing it repeatedly
     // while a submission is in progress and submitting multiple copies of the same object
     private void setAcceptActionEnabled(boolean enabled) {
         isAcceptActionEnabled = enabled;
         invalidateOptionsMenu();
     }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        locationService = (LocationService.LocationServiceBinder)service;
+        isLocationServiceBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        isLocationServiceBound = false;
+    }
+
+    private class PostFailedException extends Exception {}
 }
