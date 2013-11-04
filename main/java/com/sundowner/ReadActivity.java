@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.facebook.Session;
 import com.sundowner.api.EndpointContentGET;
 import com.sundowner.api.EndpointVotesPOST;
 import com.sundowner.util.ContentArrayAdapter;
@@ -203,5 +204,13 @@ public class ReadActivity extends ListActivity implements
         Log.i(TAG, "Received location update");
         // use the current location to asynchronously request nearby objects from the server
         new EndpointContentGET(location.getLongitude(), location.getLatitude(), this).call();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Session.getActiveSession().closeAndClearTokenInformation();
+        setResult(RESULT_OK);
+        finish();
     }
 }

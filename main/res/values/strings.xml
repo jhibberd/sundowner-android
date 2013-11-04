@@ -9,4 +9,6 @@
     <string name="title_activity_settings">Settings</string>
     <string name="preference_username">Username</string>
     <string name="preference_username_default">Android</string>
+    <string name="app_id">215833641927561</string>
+    <string name="intro">Help make the work a better place by solving micro problems wherever you go.</string>
 </resources>

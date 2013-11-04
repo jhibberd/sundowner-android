@@ -57,7 +57,7 @@ public class ContentView extends RelativeLayout {
         textColor = res.getColor(hasURL ? R.color.link : R.color.text);
         this.text.setText(text);
         this.text.setTextColor(textColor);
-        this.author.setText("by " + author);
+        this.author.setText(author);
     }
 
     @Override

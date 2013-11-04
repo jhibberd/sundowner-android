@@ -17,4 +17,31 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <style name="IntroTheme" parent="AppTheme">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:background">#33B5E5</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="ReadTheme" parent="AppTheme">
+        <item name="android:listViewStyle">@style/ListViewStyle</item>
+        <item name="android:actionBarStyle">@style/ActionBarStyle</item>
+    </style>
+
+    <style name="WriteTheme" parent="AppTheme">
+        <item name="android:background">#33B5E5</item>
+    </style>
+
+    <style name="ListViewStyle">
+        <item name="android:background">#33B5E5</item>
+    </style>
+
+    <style name="ActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">#33B5E5</item>
+    </style>
+
+    <style name="ContentAuthor">
+        <item name="android:textColor">#33B5E5</item>
+    </style>
+
 </resources>
