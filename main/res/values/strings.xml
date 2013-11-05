@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Sundowner</string>
+    <string name="app_name">Soaptag</string>
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_compose">Make a post</string>
@@ -10,5 +10,5 @@
     <string name="preference_username">Username</string>
     <string name="preference_username_default">Android</string>
     <string name="app_id">215833641927561</string>
-    <string name="intro">Help make the work a better place by solving micro problems wherever you go.</string>
+    <string name="intro">Make life a bit easier by sharing solutions to micro-problems.</string>
 </resources>

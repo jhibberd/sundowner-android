@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="content_background">#ffffff</color>
-    <color name="app_background">#eeeeee</color>
+    <color name="app_background">#33B5E5</color>
     <color name="like">#eb5b54</color>
     <color name="background_text">#d2d2d2</color>
     <color name="text">#333333</color>
-    <color name="link">#75920d</color>
+    <color name="text_intro">#ffffff</color>
 </resources>

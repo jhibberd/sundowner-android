@@ -11,14 +11,16 @@
     android:paddingLeft="20dp"
     >
     <EditText
+        style="@style/WriteContentText"
         android:id="@+id/text"
         android:inputType="textMultiLine"
-        android:minLines="4"
+        android:minLines="1"
         android:gravity="top"
         android:textSize="22sp"
-        android:paddingLeft="3dp"
-        android:paddingRight="3dp"
-        android:paddingTop="3dp"
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="3dp"
         android:maxLines="20"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
@@ -28,7 +30,7 @@
         android:id="@+id/author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="by James"
+        android:text="Annie Or Kam Fat"
         android:textSize="12sp"
         />
 </LinearLayout>

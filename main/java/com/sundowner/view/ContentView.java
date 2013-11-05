@@ -54,9 +54,7 @@ public class ContentView extends RelativeLayout {
             Log.e(TAG, "Failed to get resources.");
             return;
         }
-        textColor = res.getColor(hasURL ? R.color.link : R.color.text);
         this.text.setText(text);
-        this.text.setTextColor(textColor);
         this.author.setText(author);
     }
 
