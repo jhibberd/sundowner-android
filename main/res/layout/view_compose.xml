@@ -2,13 +2,14 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:background="@drawable/content_background"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="15dp"
-    android:paddingRight="20dp"
-    android:paddingBottom="15dp"
-    android:paddingLeft="20dp"
+    android:background="@color/content_background"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
     >
     <EditText
         style="@style/WriteContentText"
@@ -30,7 +31,6 @@
         android:id="@+id/author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Annie Or Kam Fat"
         android:textSize="12sp"
         />
 </LinearLayout>

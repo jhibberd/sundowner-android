@@ -1,8 +1,10 @@
 <ListView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/list"
+    android:listSelector="@android:color/transparent"
     android:paddingTop="5dp"
-    android:paddingBottom="5dp"
+    android:paddingBottom="10dp"
+    android:dividerHeight="5dp"
     android:clipToPadding="false"
     android:layout_height="fill_parent"
     android:layout_width="fill_parent"

@@ -2,6 +2,7 @@ package com.sundowner.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.PathShape;
@@ -17,6 +18,7 @@ public class LikeContentView extends View {
 
     public LikeContentView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setBackgroundColor(Color.TRANSPARENT);
     }
 
     @Override

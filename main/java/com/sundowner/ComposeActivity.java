@@ -5,18 +5,17 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.sundowner.api.EndpointContentPOST;
+import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ComposeView;
 
@@ -112,11 +111,6 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
-        // read the user ID from the preferences
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String defaultUsername = getResources().getString(R.string.preference_username_default);
-        String username = sharedPrefs.getString("username", defaultUsername);
-
         ComposeView composeView = (ComposeView)findViewById(R.id.compose_view);
         Map<String, String> parsedText = composeView.getParsedText();
         if (parsedText == null) {
@@ -132,9 +126,11 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
+        String userId = LocalNativeAccountData.load(this).userId;
+
         new EndpointContentPOST(
             currentLocation.getLongitude(), currentLocation.getLatitude(),
-            currentLocation.getAccuracy(), text, parsedText.get("url"), username, this).call();
+            currentLocation.getAccuracy(), text, parsedText.get("url"), userId, this).call();
     }
 
     @Override

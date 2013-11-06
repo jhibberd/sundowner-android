@@ -8,8 +8,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.sundowner.R;
+import com.sundowner.util.LocalNativeAccountData;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,10 +24,16 @@ public class ComposeView extends LinearLayout {
     private final EditText editText;
 
     public ComposeView(Context context, AttributeSet attrs) {
+
         super(context, attrs);
         View.inflate(context, R.layout.view_compose, this);
+
         editText = (EditText)findViewById(R.id.text);
         editText.addTextChangedListener(new ContentTextWatcher());
+
+        TextView author = (TextView)findViewById(R.id.author);
+        String userName = LocalNativeAccountData.load(context).userName;
+        author.setText(userName);
     }
 
     public Map<String, String> getParsedText() {

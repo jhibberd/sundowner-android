@@ -6,23 +6,22 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.facebook.Session;
 import com.sundowner.api.EndpointContentGET;
 import com.sundowner.api.EndpointVotesPOST;
 import com.sundowner.util.ContentArrayAdapter;
+import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ContentView;
+import com.sundowner.view.FBLoginFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,9 +48,6 @@ public class ReadActivity extends ListActivity implements
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayShowTitleEnabled(false);
-
-        // set default preferences (will not override user preferences)
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         // bind objects array, adapter and list view
         objects = new ArrayList<JSONObject>();
@@ -94,6 +90,10 @@ public class ReadActivity extends ListActivity implements
             return;
         }
 
+        // reassign the adapter to clear the view cache, otherwise causes a bug whereby the cell
+        // background rectangle disappears temporarily
+        setListAdapter(adapter);
+
         adapter.notifyDataSetChanged();
         Log.i(TAG, "Updated displayed content");
     }
@@ -115,12 +115,9 @@ public class ReadActivity extends ListActivity implements
         // notify the server that the content has been voted up
         try {
 
-            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String defaultUsername = getResources().getString(R.string.preference_username_default);
-            String userId = sharedPrefs.getString("username", defaultUsername);
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
+            String userId = LocalNativeAccountData.load(this).userId;
 
             new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.UP).call();
 
@@ -133,12 +130,9 @@ public class ReadActivity extends ListActivity implements
         // notify the server that the content has been voted down
         try {
 
-            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String defaultUsername = getResources().getString(R.string.preference_username_default);
-            String userId = sharedPrefs.getString("username", defaultUsername);
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
+            String userId = LocalNativeAccountData.load(this).userId;
 
             new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.DOWN).call();
 
@@ -149,11 +143,6 @@ public class ReadActivity extends ListActivity implements
 
     private void composeObject() {
         Intent intent = new Intent(this, ComposeActivity.class);
-        startActivity(intent);
-    }
-
-    private void showSettings() {
-        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 
@@ -170,9 +159,6 @@ public class ReadActivity extends ListActivity implements
         switch (item.getItemId()) {
             case R.id.action_compose:
                 composeObject();
-                return true;
-            case R.id.action_settings:
-                showSettings();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -209,7 +195,7 @@ public class ReadActivity extends ListActivity implements
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Session.getActiveSession().closeAndClearTokenInformation();
+        FBLoginFragment.closeSession(this);
         setResult(RESULT_OK);
         finish();
     }

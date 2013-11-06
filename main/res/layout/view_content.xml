@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+    style="@style/ContentView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/content_background"
-    android:paddingTop="15dp"
-    android:paddingRight="20dp"
-    android:paddingBottom="15dp"
-    android:paddingLeft="20dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginTop="5dp"
+    android:padding="10dp"
     >
     <TextView
         style="@style/ContentText"
         android:id="@+id/text"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textSize="22sp"
         />
@@ -20,7 +20,7 @@
         style="@style/ContentAuthor"
         android:id="@+id/author"
         android:layout_below="@id/text"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textSize="12sp"
         />

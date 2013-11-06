@@ -28,7 +28,6 @@ public class ContentView extends RelativeLayout {
     private GestureDetector gestureDetector;
     private Delegate delegate;
     private int position; // index of content data in list
-    private int textColor;
     private boolean hasURL;
     private TextView text;
     private TextView author;
@@ -99,8 +98,9 @@ public class ContentView extends RelativeLayout {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    Resources res = getResources();
                     TextView v = (TextView)findViewById(R.id.text);
-                    v.setTextColor(textColor);
+                    v.setTextColor(res.getColor(R.color.text));
                     v.setPaintFlags(v.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                 }
             }, STRIKETHROUGH_DELAY);

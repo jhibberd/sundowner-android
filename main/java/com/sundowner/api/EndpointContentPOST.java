@@ -26,10 +26,6 @@ public class EndpointContentPOST extends JSONEndpoint {
             String userId, Delegate delegate) {
 
         super(HTTPMethod.POST);
-
-        // TODO for testing
-        userId = "cccccccccccccccccccccccc";
-
         this.longitude = longitude;
         this.latitude = latitude;
         this.accuracy = accuracy;

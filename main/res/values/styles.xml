@@ -20,8 +20,8 @@
         name="AppTheme"
         parent="AppBaseTheme"
         >
-        <item name="android:background">@color/app_background</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:background">@color/app_background</item>
     </style>
 
     <style
@@ -49,8 +49,9 @@
     </style>
 
     <style name="ListViewStyle">
-        <item name="android:divider">@null</item>
-        <item name="android:dividerHeight">0dp</item>
+        <item name="android:divider">@android:color/transparent</item>
+        <item name="android:cacheColorHint">@color/content_background</item>
+        <item name="android:scrollingCache">false</item>
     </style>
 
     <style
@@ -62,6 +63,12 @@
 
     <style name="WriteContentText">
         <item name="android:background">@null</item>
+    </style>
+
+    <style name="ContentView">
+        <item name="android:background">@color/content_background</item>
+        <item name="android:cacheColorHint">@color/content_background</item>
+        <item name="android:scrollingCache">false</item>
     </style>
 
     <style name="ContentText">

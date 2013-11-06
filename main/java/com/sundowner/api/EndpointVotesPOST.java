@@ -31,10 +31,6 @@ public class EndpointVotesPOST extends JSONEndpoint {
 
     public EndpointVotesPOST(String contentId, String userId, Vote vote) {
         super(HTTPMethod.POST);
-
-        // TODO for testing
-        userId = "cccccccccccccccccccccccc";
-
         this.contentId = contentId;
         this.userId = userId;
         this.vote = vote;

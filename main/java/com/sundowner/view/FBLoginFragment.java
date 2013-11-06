@@ -1,6 +1,7 @@
 package com.sundowner.view;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,16 +15,27 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.LoginButton;
 import com.sundowner.R;
+import com.sundowner.api.EndpointUserIdPOST;
+import com.sundowner.util.LocalNativeAccountData;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 // implementation of Facebook login flow as per doc:
 // https://developers.facebook.com/docs/android/login-with-facebook/
-public class FBLoginFragment extends Fragment {
+public class FBLoginFragment extends Fragment implements EndpointUserIdPOST.Delegate {
 
     public static interface OnSessionOpenListener {
         public abstract void onSessionOpen();
     }
 
     private static final String TAG = "FBLoginFragment";
+
+    public static void closeSession(Context ctx) {
+        Session.getActiveSession().closeAndClearTokenInformation();
+        LocalNativeAccountData.clear(ctx);
+    }
+
     private UiLifecycleHelper uiHelper;
     private OnSessionOpenListener listener;
     private boolean loggedInViewVisible = false;
@@ -73,17 +85,38 @@ public class FBLoginFragment extends Fragment {
 
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
 
-        // If a Facebook session opens and the logged-in activity isn't currently visible then
-        // start it. This method can be called while the logged-in activity is already visible
-        // as a result of the flow that arises from using the separate Facebook app to auth the
-        // user which then redirects back to this app.
         if (state.isOpened()) {
 
+            // If a Facebook session opens but the logged in activity is already visible then
+            // start the activity again. A session can appear to be opened twice as a result of
+            // transitioning between this app and the Facebook app during the auth process.
             if (loggedInViewVisible) {
                 return;
             }
             loggedInViewVisible = true;
+
+            // convert a Facebook access token to native user name and ID
+            new EndpointUserIdPOST(session.getAccessToken(), this).call();
+        }
+    }
+
+    @Override
+    public void onEndpointUserIdPOSTResponse(JSONObject data) {
+        try {
+
+            // store the native user name and ID locally on the device
+            JSONObject payload = data.getJSONObject("data");
+            String userName = payload.getString("name");
+            String userId = payload.getString("id");
+
+            Context ctx = getActivity();
+            new LocalNativeAccountData(userName, userId).save(ctx);
+
             listener.onSessionOpen();
+
+        } catch (JSONException e) {
+            Log.e(TAG, "Badly formed JSON returned from /users endpoint.");
+            return;
         }
     }
 

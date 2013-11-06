@@ -23,8 +23,8 @@ public class EndpointContentGET extends JSONEndpoint {
         // latitude = 3.098744131;
 
         // TODO for testing sandbox
-        longitude = 101.6868549;
-        latitude = 3.139003;
+        longitude = 1;
+        latitude = 1;
 
         this.longitude = longitude;
         this.latitude = latitude;
