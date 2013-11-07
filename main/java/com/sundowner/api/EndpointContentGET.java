@@ -17,15 +17,6 @@ public class EndpointContentGET extends JSONEndpoint {
     public EndpointContentGET(double longitude, double latitude, Delegate delegate) {
 
         super(HTTPMethod.GET);
-
-        // TODO for testing instagram
-        // longitude = 101.714834785;
-        // latitude = 3.098744131;
-
-        // TODO for testing sandbox
-        longitude = 1;
-        latitude = 1;
-
         this.longitude = longitude;
         this.latitude = latitude;
         this.delegate = delegate;
