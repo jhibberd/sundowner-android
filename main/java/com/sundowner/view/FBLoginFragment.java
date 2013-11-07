@@ -95,8 +95,15 @@ public class FBLoginFragment extends Fragment implements EndpointUserIdPOST.Dele
             }
             loggedInViewVisible = true;
 
-            // convert a Facebook access token to native user name and ID
-            new EndpointUserIdPOST(session.getAccessToken(), this).call();
+            // Now that we have an open FB session, check to see if there is native account data
+            // stored on the device. If there is we can proceed to the main activity, otherwise
+            // exchange the FB access token with the server for native account data.
+            Context ctx = getActivity();
+            if (LocalNativeAccountData.load(ctx) == null) {
+                new EndpointUserIdPOST(session.getAccessToken(), this).call();
+            } else {
+                listener.onSessionOpen();
+            }
         }
     }
 
@@ -116,7 +123,6 @@ public class FBLoginFragment extends Fragment implements EndpointUserIdPOST.Dele
 
         } catch (JSONException e) {
             Log.e(TAG, "Badly formed JSON returned from /users endpoint.");
-            return;
         }
     }
 
