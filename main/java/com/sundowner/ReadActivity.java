@@ -189,7 +189,9 @@ public class ReadActivity extends ListActivity implements
     public void onLocationUpdate(Location location) {
         Log.i(TAG, "Received location update");
         // use the current location to asynchronously request nearby objects from the server
-        new EndpointContentGET(location.getLongitude(), location.getLatitude(), this).call();
+        String userId = LocalNativeAccountData.load(this).userId;
+        new EndpointContentGET(
+            location.getLongitude(), location.getLatitude(), userId, this).call();
     }
 
     @Override
