@@ -21,6 +21,15 @@
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/app_id"
             />
+        <meta-data
+            android:name="com.sundowner.ServerHost"
+            android:value="khann.org"
+            />
+        <meta-data
+            android:name="com.sundowner.ServerPort"
+            android:value="8050"
+            />
+
         <service
             android:name=".util.LocationService"
             android:exported="false"

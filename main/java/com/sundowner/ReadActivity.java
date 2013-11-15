@@ -121,7 +121,7 @@ public class ReadActivity extends ListActivity implements
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
             String accessToken = Session.getActiveSession().getAccessToken();
-            new EndpointVotesPOST(contentId, accessToken, EndpointVotesPOST.Vote.UP).call();
+            new EndpointVotesPOST(this, contentId, accessToken, EndpointVotesPOST.Vote.UP).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to up vote content as local content is badly formed");
@@ -134,7 +134,8 @@ public class ReadActivity extends ListActivity implements
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
             String accessToken = Session.getActiveSession().getAccessToken();
-            new EndpointVotesPOST(contentId, accessToken, EndpointVotesPOST.Vote.DOWN).call();
+            new EndpointVotesPOST(
+                this, contentId, accessToken, EndpointVotesPOST.Vote.DOWN).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to down vote content as local content is badly formed");
@@ -191,7 +192,7 @@ public class ReadActivity extends ListActivity implements
         Log.i(TAG, "Received location update");
         String accessToken = Session.getActiveSession().getAccessToken();
         new EndpointContentGET(
-            location.getLongitude(), location.getLatitude(), accessToken, this).call();
+            this, location.getLongitude(), location.getLatitude(), accessToken, this).call();
     }
 
     @Override

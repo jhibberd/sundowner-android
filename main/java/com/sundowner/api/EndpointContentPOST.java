@@ -1,5 +1,6 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -22,10 +23,10 @@ public class EndpointContentPOST extends JSONEndpoint {
     private final Delegate delegate;
 
     public EndpointContentPOST(
-            double longitude, double latitude, float accuracy, String text, String url,
-            String accessToken, Delegate delegate) {
+            Context ctx, double longitude, double latitude, float accuracy, String text,
+            String url, String accessToken, Delegate delegate) {
 
-        super(HTTPMethod.POST);
+        super(ctx, HTTPMethod.POST);
         this.longitude = longitude;
         this.latitude = latitude;
         this.accuracy = accuracy;

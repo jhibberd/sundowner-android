@@ -1,5 +1,6 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
 
 import org.json.JSONObject;
@@ -16,9 +17,10 @@ public class EndpointContentGET extends JSONEndpoint {
     private final Delegate delegate;
 
     public EndpointContentGET(
-            double longitude, double latitude, String accessToken, Delegate delegate) {
+            Context ctx, double longitude, double latitude, String accessToken,
+            Delegate delegate) {
 
-        super(HTTPMethod.GET);
+        super(ctx, HTTPMethod.GET);
         this.longitude = longitude;
         this.latitude = latitude;
         this.accessToken = accessToken;

@@ -1,5 +1,6 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -29,8 +30,8 @@ public class EndpointVotesPOST extends JSONEndpoint {
     private final String accessToken;
     private final Vote vote;
 
-    public EndpointVotesPOST(String contentId, String accessToken, Vote vote) {
-        super(HTTPMethod.POST);
+    public EndpointVotesPOST(Context ctx, String contentId, String accessToken, Vote vote) {
+        super(ctx, HTTPMethod.POST);
         this.contentId = contentId;
         this.accessToken = accessToken;
         this.vote = vote;

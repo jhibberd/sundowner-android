@@ -136,7 +136,7 @@ public class ComposeActivity extends Activity implements
         String accessToken = Session.getActiveSession().getAccessToken();
 
         new EndpointContentPOST(
-            currentLocation.getLongitude(), currentLocation.getLatitude(),
+            this, currentLocation.getLongitude(), currentLocation.getLatitude(),
             currentLocation.getAccuracy(), text, parsedText.get("url"), accessToken, this).call();
     }
 

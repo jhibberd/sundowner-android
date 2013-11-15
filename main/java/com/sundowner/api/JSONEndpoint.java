@@ -1,5 +1,8 @@
 package com.sundowner.api;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -22,22 +25,39 @@ public abstract class JSONEndpoint {
         POST
     }
 
+    private static final String META_DATA_SERVER_HOST = "com.sundowner.ServerHost";
+    private static final String META_DATA_SERVER_PORT = "com.sundowner.ServerPort";
     private static final String TAG = "JSONEndpoint";
-    private static final String ENDPOINT_ROOT = "http://199.101.48.101:8050";
+    private Context ctx;
     private HTTPMethod method;
 
-    public JSONEndpoint(HTTPMethod method) {
+    public JSONEndpoint(Context ctx, HTTPMethod method) {
+        this.ctx = ctx;
         this.method = method;
     }
 
     public void call() {
+        try {
+            ApplicationInfo ai = ctx.getPackageManager().getApplicationInfo(
+                ctx.getPackageName(), PackageManager.GET_META_DATA);
+            String host = ai.metaData.getString(META_DATA_SERVER_HOST);
+            String port = ai.metaData.getString(META_DATA_SERVER_PORT);
 
-        // subclass to define the URI
-        Uri.Builder uriBuilder = Uri.parse(ENDPOINT_ROOT).buildUpon();
-        buildURI(uriBuilder);
-        Uri uri = uriBuilder.build();
+            // subclass to define the URI
+            String uriString = String.format("http://%s:%s", host, port);
+            Uri.Builder uriBuilder = Uri.parse(uriString).buildUpon();
+            buildURI(uriBuilder);
+            Uri uri = uriBuilder.build();
 
-        new AsyncRequest().execute(uri);
+            new AsyncRequest().execute(uri);
+
+        }
+        catch (NullPointerException e) {
+            Log.e(TAG, "Failed to get package manager.");
+        }
+        catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Failed to read server host/port from manifest.");
+        }
     }
 
     protected abstract void buildURI(Uri.Builder uriBuilder);
