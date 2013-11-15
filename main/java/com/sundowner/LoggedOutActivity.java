@@ -50,11 +50,12 @@ public class LoggedOutActivity extends FragmentActivity implements
     }
 
     @Override
-    public void onSessionOpen() {
+    public void onSessionOpen(String user) {
         // the Facebook LoginView has notified the class that a Facebook session has been opened
         // so start the logged in activity
-        Intent loggedInActivity = new Intent(this, ReadActivity.class);
-        startActivityForResult(loggedInActivity, START_LOGGED_IN_ACTIVITY_REQUEST_CODE);
+        Intent intent = new Intent(this, ReadActivity.class);
+        intent.putExtra(ReadActivity.ACTIVITY_EXTRA_USER, user);
+        startActivityForResult(intent, START_LOGGED_IN_ACTIVITY_REQUEST_CODE);
     }
 
     @Override

@@ -15,10 +15,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.facebook.Session;
 import com.sundowner.api.EndpointContentGET;
 import com.sundowner.api.EndpointVotesPOST;
 import com.sundowner.util.ContentArrayAdapter;
-import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ContentView;
 import com.sundowner.view.FBLoginFragment;
@@ -33,9 +33,11 @@ public class ReadActivity extends ListActivity implements
         EndpointContentGET.Delegate, ContentView.Delegate, ServiceConnection,
         LocationService.Delegate {
 
+    public static final String ACTIVITY_EXTRA_USER = "USER";
     private static final String TAG = "ReadActivity";
     private ArrayList<JSONObject> objects;
     private ContentArrayAdapter adapter;
+    private String user;
     private boolean isLocationServiceBound = false;
 
     @Override
@@ -43,6 +45,8 @@ public class ReadActivity extends ListActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
+
+        user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
 
         // hide icon and title from the action bar
         ActionBar actionBar = getActionBar();
@@ -114,12 +118,10 @@ public class ReadActivity extends ListActivity implements
     public void onContentViewDoubleTap(int position) {
         // notify the server that the content has been voted up
         try {
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
-            String userId = LocalNativeAccountData.load(this).userId;
-
-            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.UP).call();
+            String accessToken = Session.getActiveSession().getAccessToken();
+            new EndpointVotesPOST(contentId, accessToken, EndpointVotesPOST.Vote.UP).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to up vote content as local content is badly formed");
@@ -129,12 +131,10 @@ public class ReadActivity extends ListActivity implements
     public void onContentViewLongTap(int position) {
         // notify the server that the content has been voted down
         try {
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
-            String userId = LocalNativeAccountData.load(this).userId;
-
-            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.DOWN).call();
+            String accessToken = Session.getActiveSession().getAccessToken();
+            new EndpointVotesPOST(contentId, accessToken, EndpointVotesPOST.Vote.DOWN).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to down vote content as local content is badly formed");
@@ -143,6 +143,7 @@ public class ReadActivity extends ListActivity implements
 
     private void composeObject() {
         Intent intent = new Intent(this, ComposeActivity.class);
+        intent.putExtra(ComposeActivity.ACTIVITY_EXTRA_USER, user);
         startActivity(intent);
     }
 
@@ -188,16 +189,15 @@ public class ReadActivity extends ListActivity implements
     @Override
     public void onLocationUpdate(Location location) {
         Log.i(TAG, "Received location update");
-        // use the current location to asynchronously request nearby objects from the server
-        String userId = LocalNativeAccountData.load(this).userId;
+        String accessToken = Session.getActiveSession().getAccessToken();
         new EndpointContentGET(
-            location.getLongitude(), location.getLatitude(), userId, this).call();
+            location.getLongitude(), location.getLatitude(), accessToken, this).call();
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        FBLoginFragment.closeSession(this);
+        FBLoginFragment.closeSession();
         setResult(RESULT_OK);
         finish();
     }

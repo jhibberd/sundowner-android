@@ -1,7 +1,6 @@
 package com.sundowner.view;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,30 +9,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.facebook.Request;
+import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
+import com.facebook.model.GraphUser;
 import com.facebook.widget.LoginButton;
 import com.sundowner.R;
-import com.sundowner.api.EndpointUserIdPOST;
-import com.sundowner.util.LocalNativeAccountData;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 // implementation of Facebook login flow as per doc:
 // https://developers.facebook.com/docs/android/login-with-facebook/
-public class FBLoginFragment extends Fragment implements EndpointUserIdPOST.Delegate {
+public class FBLoginFragment extends Fragment {
 
     public static interface OnSessionOpenListener {
-        public abstract void onSessionOpen();
+        public abstract void onSessionOpen(String user);
     }
 
     private static final String TAG = "FBLoginFragment";
 
-    public static void closeSession(Context ctx) {
+    public static void closeSession() {
         Session.getActiveSession().closeAndClearTokenInformation();
-        LocalNativeAccountData.clear(ctx);
     }
 
     private UiLifecycleHelper uiHelper;
@@ -95,34 +91,14 @@ public class FBLoginFragment extends Fragment implements EndpointUserIdPOST.Dele
             }
             loggedInViewVisible = true;
 
-            // Now that we have an open FB session, check to see if there is native account data
-            // stored on the device. If there is we can proceed to the main activity, otherwise
-            // exchange the FB access token with the server for native account data.
-            Context ctx = getActivity();
-            if (LocalNativeAccountData.load(ctx) == null) {
-                new EndpointUserIdPOST(session.getAccessToken(), this).call();
-            } else {
-                listener.onSessionOpen();
-            }
-        }
-    }
-
-    @Override
-    public void onEndpointUserIdPOSTResponse(JSONObject data) {
-        try {
-
-            // store the native user name and ID locally on the device
-            JSONObject payload = data.getJSONObject("data");
-            String userName = payload.getString("name");
-            String userId = payload.getString("id");
-
-            Context ctx = getActivity();
-            new LocalNativeAccountData(userName, userId).save(ctx);
-
-            listener.onSessionOpen();
-
-        } catch (JSONException e) {
-            Log.e(TAG, "Badly formed JSON returned from /users endpoint.");
+            // Using the Facebook access token, call the Facebook Graph API to get the name of
+            // the user. Store the name in memory until the Facebook session is closed.
+            Request.newMeRequest(session, new Request.GraphUserCallback() {
+                @Override
+                public void onCompleted(GraphUser user, Response response) {
+                    listener.onSessionOpen(user.getName());
+                }
+            }).executeAsync();
         }
     }
 

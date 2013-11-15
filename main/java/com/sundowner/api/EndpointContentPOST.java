@@ -18,12 +18,12 @@ public class EndpointContentPOST extends JSONEndpoint {
     private final float accuracy;
     private final String text;
     private final String url;
-    private final String userId;
+    private final String accessToken;
     private final Delegate delegate;
 
     public EndpointContentPOST(
             double longitude, double latitude, float accuracy, String text, String url,
-            String userId, Delegate delegate) {
+            String accessToken, Delegate delegate) {
 
         super(HTTPMethod.POST);
         this.longitude = longitude;
@@ -31,7 +31,7 @@ public class EndpointContentPOST extends JSONEndpoint {
         this.accuracy = accuracy;
         this.text = text;
         this.url = url;
-        this.userId = userId;
+        this.accessToken = accessToken;
         this.delegate = delegate;
     }
 
@@ -51,7 +51,7 @@ public class EndpointContentPOST extends JSONEndpoint {
             if (url != null) {
                 object.put("url", url);
             }
-            object.put("user_id", userId);
+            object.put("access_token", accessToken);
             return object;
         } catch (JSONException e) {
             Log.d(TAG, "Failed to create request body object");

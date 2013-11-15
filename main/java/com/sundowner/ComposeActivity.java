@@ -14,8 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.facebook.Session;
 import com.sundowner.api.EndpointContentPOST;
-import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ComposeView;
 
@@ -28,16 +28,24 @@ import java.util.Map;
 public class ComposeActivity extends Activity implements
     EndpointContentPOST.Delegate, ServiceConnection {
 
+    public static final String ACTIVITY_EXTRA_USER = "USER";
     private static final String TAG = "ComposeActivity";
     private boolean isAcceptActionEnabled = true;
     private boolean isLocationServiceBound = false;
     private LocationService.LocationServiceBinder locationService;
+    private String user;
+    private ComposeView composeView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
+
+        user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
+
+        composeView = (ComposeView)findViewById(R.id.compose_view);
+        composeView.setAuthor(user);
 
         // hide icon and title from the action bar
         ActionBar actionBar = getActionBar();
@@ -111,7 +119,6 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
-        ComposeView composeView = (ComposeView)findViewById(R.id.compose_view);
         Map<String, String> parsedText = composeView.getParsedText();
         if (parsedText == null) {
             Log.e(TAG, "ComposeView returned null text");
@@ -126,11 +133,11 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
-        String userId = LocalNativeAccountData.load(this).userId;
+        String accessToken = Session.getActiveSession().getAccessToken();
 
         new EndpointContentPOST(
             currentLocation.getLongitude(), currentLocation.getLatitude(),
-            currentLocation.getAccuracy(), text, parsedText.get("url"), userId, this).call();
+            currentLocation.getAccuracy(), text, parsedText.get("url"), accessToken, this).call();
     }
 
     @Override

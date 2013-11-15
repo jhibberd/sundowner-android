@@ -26,13 +26,13 @@ public class EndpointVotesPOST extends JSONEndpoint {
 
     private static final String TAG = "EndpointVotesPOST";
     private final String contentId;
-    private final String userId;
+    private final String accessToken;
     private final Vote vote;
 
-    public EndpointVotesPOST(String contentId, String userId, Vote vote) {
+    public EndpointVotesPOST(String contentId, String accessToken, Vote vote) {
         super(HTTPMethod.POST);
         this.contentId = contentId;
-        this.userId = userId;
+        this.accessToken = accessToken;
         this.vote = vote;
     }
 
@@ -46,7 +46,7 @@ public class EndpointVotesPOST extends JSONEndpoint {
         try {
             JSONObject object = new JSONObject();
             object.put("content_id", contentId);
-            object.put("user_id", userId);
+            object.put("access_token", accessToken);
             object.put("vote", vote.getValue());
             return object;
         } catch (JSONException e) {
