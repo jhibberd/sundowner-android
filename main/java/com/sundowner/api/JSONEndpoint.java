@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.apache.http.util.ByteArrayBuffer;
@@ -38,10 +39,22 @@ public abstract class JSONEndpoint {
 
     public void call() {
         try {
-            ApplicationInfo ai = ctx.getPackageManager().getApplicationInfo(
-                ctx.getPackageName(), PackageManager.GET_META_DATA);
-            String host = ai.metaData.getString(META_DATA_SERVER_HOST);
-            String port = ai.metaData.getString(META_DATA_SERVER_PORT);
+
+            // read API host/port from manifest
+            PackageManager pm = ctx.getPackageManager();
+            if (pm == null) {
+                Log.e(TAG, "Failed to get package manager.");
+                return;
+            }
+            String pn = ctx.getPackageName();
+            ApplicationInfo ai = pm.getApplicationInfo(pn, PackageManager.GET_META_DATA);
+            Bundle b = ai.metaData;
+            if (b == null) {
+                Log.e(TAG, "Failed to get bundle.");
+                return;
+            }
+            String host = b.getString(META_DATA_SERVER_HOST);
+            int port = b.getInt(META_DATA_SERVER_PORT);
 
             // subclass to define the URI
             String uriString = String.format("http://%s:%s", host, port);
@@ -61,30 +74,48 @@ public abstract class JSONEndpoint {
     }
 
     protected abstract void buildURI(Uri.Builder uriBuilder);
-    protected abstract void onResponseReceived(JSONObject data);
+    protected abstract void onResponseSuccess(JSONObject payload);
+    protected abstract void onResponseError(JSONObject payload);
 
     protected JSONObject getRequestBody() {
         // should be implemented by the subclass if the endpoint expects a request body
         return null;
     }
 
+    private class APIResponse {
+
+        public boolean success;
+        public JSONObject payload;
+
+        public APIResponse(boolean success, JSONObject payload) {
+            this.success = success;
+            this.payload = payload;
+        }
+    }
+
     // abstraction of logic for issuing HTTP request
     // http://developer.android.com/training/basics/network-ops/connecting.html
-    protected class AsyncRequest extends AsyncTask<Uri, Void, JSONObject> {
+    protected class AsyncRequest extends AsyncTask<Uri, Void, APIResponse> {
 
         @Override
-        protected JSONObject doInBackground(Uri... uris) {
+        protected APIResponse doInBackground(Uri... uris) {
             try {
-                return request(uris[0]);
+                JSONObject payload = request(uris[0]);
+                return new APIResponse(true, payload);
+
             } catch (ServerException e) {
                 Log.e(TAG, "Error response from server: " + e.data.toString());
-                return null;
+                return new APIResponse(false, e.data);
             }
         }
 
         @Override
-        protected void onPostExecute(JSONObject data) {
-            onResponseReceived(data);
+        protected void onPostExecute(APIResponse response) {
+            if (response.success) {
+                onResponseSuccess(response.payload);
+            } else {
+                onResponseError(response.payload);
+            }
         }
 
         private final int READ_TIMEOUT = 10000; // milliseconds

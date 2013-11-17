@@ -10,7 +10,8 @@ import org.json.JSONObject;
 public class EndpointContentPOST extends JSONEndpoint {
 
     public interface Delegate {
-        public void onEndpointContentPOSTResponse(JSONObject data);
+        public void onServerContentPOSTResponse(JSONObject payload);
+        public void onServerError(JSONObject payload);
     }
 
     private static final String TAG = "EndpointContentPOST";
@@ -61,7 +62,13 @@ public class EndpointContentPOST extends JSONEndpoint {
     }
 
     @Override
-    protected void onResponseReceived(JSONObject data) {
-        delegate.onEndpointContentPOSTResponse(data);
+    protected void onResponseSuccess(JSONObject payload) {
+        delegate.onServerContentPOSTResponse(payload);
+    }
+
+    @Override
+    protected void onResponseError(JSONObject payload) {
+        Log.e(TAG, "Error response");
+        delegate.onServerError(payload);
     }
 }

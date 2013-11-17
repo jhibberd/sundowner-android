@@ -29,11 +29,11 @@ public class ComposeActivity extends Activity implements
     EndpointContentPOST.Delegate, ServiceConnection {
 
     public static final String ACTIVITY_EXTRA_USER = "USER";
+    public static final int RESULT_BAD_ACCESS_TOKEN = 1;
     private static final String TAG = "ComposeActivity";
     private boolean isAcceptActionEnabled = true;
     private boolean isLocationServiceBound = false;
     private LocationService.LocationServiceBinder locationService;
-    private String user;
     private ComposeView composeView;
 
     @Override
@@ -42,15 +42,18 @@ public class ComposeActivity extends Activity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
 
-        user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
-
+        String user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
         composeView = (ComposeView)findViewById(R.id.compose_view);
         composeView.setAuthor(user);
 
         // hide icon and title from the action bar
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayShowTitleEnabled(false);
+        ActionBar ab = getActionBar();
+        if (ab == null) {
+            Log.e(TAG, "Failed to get action bar.");
+            return;
+        }
+        ab.setDisplayShowHomeEnabled(false);
+        ab.setDisplayShowTitleEnabled(false);
     }
 
     @Override
@@ -141,9 +144,9 @@ public class ComposeActivity extends Activity implements
     }
 
     @Override
-    public void onEndpointContentPOSTResponse(JSONObject data) {
+    public void onServerContentPOSTResponse(JSONObject payload) {
         try {
-            int statusCode = data.getJSONObject("meta").getInt("code");
+            int statusCode = payload.getJSONObject("meta").getInt("code");
             if (statusCode != HttpStatus.SC_CREATED) {
                 throw new PostFailedException();
             }
@@ -161,6 +164,31 @@ public class ComposeActivity extends Activity implements
         } catch (JSONException e) {
             Log.e(TAG, "Server returned bad meta field");
             onPostFailed();
+        }
+    }
+
+    @Override
+    public void onServerError(JSONObject payload) {
+
+        int errorCode;
+        try {
+            errorCode = payload.getJSONObject("meta").getInt("code");
+        } catch (JSONException e) {
+            Log.e(TAG, "Badly formed error message");
+            return;
+        }
+
+        switch (errorCode) {
+
+            // if the error response indicates a bad access token then finish the activity with
+            // a status code that indicates this
+            case 100:
+                setResult(RESULT_BAD_ACCESS_TOKEN);
+                finish();
+                break;
+
+            default:
+                Log.e(TAG, "Unknown server error");
         }
     }
 
