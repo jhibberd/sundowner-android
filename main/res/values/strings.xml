@@ -7,4 +7,5 @@
     <string name="title_activity_compose">Share</string>
     <string name="app_id">215833641927561</string>
     <string name="intro">Make life a bit easier by sharing solutions to micro-problems.</string>
+    <string name="bad_access_token">There was a problem with your Facebook session. Please login again.</string>
 </resources>

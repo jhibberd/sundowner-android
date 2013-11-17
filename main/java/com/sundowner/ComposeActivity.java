@@ -14,8 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.facebook.Session;
 import com.sundowner.api.EndpointContentPOST;
-import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ComposeView;
 
@@ -28,10 +28,13 @@ import java.util.Map;
 public class ComposeActivity extends Activity implements
     EndpointContentPOST.Delegate, ServiceConnection {
 
+    public static final String ACTIVITY_EXTRA_USER = "USER";
+    public static final int RESULT_BAD_ACCESS_TOKEN = 1;
     private static final String TAG = "ComposeActivity";
     private boolean isAcceptActionEnabled = true;
     private boolean isLocationServiceBound = false;
     private LocationService.LocationServiceBinder locationService;
+    private ComposeView composeView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +42,18 @@ public class ComposeActivity extends Activity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose);
 
+        String user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
+        composeView = (ComposeView)findViewById(R.id.compose_view);
+        composeView.setAuthor(user);
+
         // hide icon and title from the action bar
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayShowTitleEnabled(false);
+        ActionBar ab = getActionBar();
+        if (ab == null) {
+            Log.e(TAG, "Failed to get action bar.");
+            return;
+        }
+        ab.setDisplayShowHomeEnabled(false);
+        ab.setDisplayShowTitleEnabled(false);
     }
 
     @Override
@@ -111,7 +122,6 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
-        ComposeView composeView = (ComposeView)findViewById(R.id.compose_view);
         Map<String, String> parsedText = composeView.getParsedText();
         if (parsedText == null) {
             Log.e(TAG, "ComposeView returned null text");
@@ -126,17 +136,17 @@ public class ComposeActivity extends Activity implements
             return;
         }
 
-        String userId = LocalNativeAccountData.load(this).userId;
+        String accessToken = Session.getActiveSession().getAccessToken();
 
         new EndpointContentPOST(
-            currentLocation.getLongitude(), currentLocation.getLatitude(),
-            currentLocation.getAccuracy(), text, parsedText.get("url"), userId, this).call();
+            this, currentLocation.getLongitude(), currentLocation.getLatitude(),
+            currentLocation.getAccuracy(), text, parsedText.get("url"), accessToken, this).call();
     }
 
     @Override
-    public void onEndpointContentPOSTResponse(JSONObject data) {
+    public void onServerContentPOSTResponse(JSONObject payload) {
         try {
-            int statusCode = data.getJSONObject("meta").getInt("code");
+            int statusCode = payload.getJSONObject("meta").getInt("code");
             if (statusCode != HttpStatus.SC_CREATED) {
                 throw new PostFailedException();
             }
@@ -154,6 +164,31 @@ public class ComposeActivity extends Activity implements
         } catch (JSONException e) {
             Log.e(TAG, "Server returned bad meta field");
             onPostFailed();
+        }
+    }
+
+    @Override
+    public void onServerError(JSONObject payload) {
+
+        int errorCode;
+        try {
+            errorCode = payload.getJSONObject("meta").getInt("code");
+        } catch (JSONException e) {
+            Log.e(TAG, "Badly formed error message");
+            return;
+        }
+
+        switch (errorCode) {
+
+            // if the error response indicates a bad access token then finish the activity with
+            // a status code that indicates this
+            case 100:
+                setResult(RESULT_BAD_ACCESS_TOKEN);
+                finish();
+                break;
+
+            default:
+                Log.e(TAG, "Unknown server error");
         }
     }
 

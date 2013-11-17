@@ -1,9 +1,9 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
-import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,16 +24,24 @@ public class EndpointVotesPOST extends JSONEndpoint {
         }
     }
 
+    public interface Delegate {
+        public void onServerVotePOSTResponse(JSONObject payload);
+        public void onServerError(JSONObject payload);
+    }
+
     private static final String TAG = "EndpointVotesPOST";
     private final String contentId;
-    private final String userId;
+    private final String accessToken;
     private final Vote vote;
+    private final Delegate delegate;
 
-    public EndpointVotesPOST(String contentId, String userId, Vote vote) {
-        super(HTTPMethod.POST);
+    public EndpointVotesPOST(
+            Context ctx, String contentId, String accessToken, Vote vote, Delegate delegate) {
+        super(ctx, HTTPMethod.POST);
         this.contentId = contentId;
-        this.userId = userId;
+        this.accessToken = accessToken;
         this.vote = vote;
+        this.delegate = delegate;
     }
 
     @Override
@@ -46,7 +54,7 @@ public class EndpointVotesPOST extends JSONEndpoint {
         try {
             JSONObject object = new JSONObject();
             object.put("content_id", contentId);
-            object.put("user_id", userId);
+            object.put("access_token", accessToken);
             object.put("vote", vote.getValue());
             return object;
         } catch (JSONException e) {
@@ -56,15 +64,13 @@ public class EndpointVotesPOST extends JSONEndpoint {
     }
 
     @Override
-    protected void onResponseReceived(JSONObject data) {
-        // this call is fire and forget, but log if there's an error response
-        try {
-            int status = data.getJSONObject("meta").getInt("code");
-            if (status != HttpStatus.SC_OK && status != HttpStatus.SC_CREATED) {
-                Log.e(TAG, "Error response following vote: " + data.toString());
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "Bad response following vote");
-        }
+    protected void onResponseSuccess(JSONObject payload) {
+        delegate.onServerVotePOSTResponse(payload);
+    }
+
+    @Override
+    protected void onResponseError(JSONObject payload) {
+        Log.e(TAG, "Error response");
+        delegate.onServerError(payload);
     }
 }

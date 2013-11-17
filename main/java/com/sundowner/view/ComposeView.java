@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sundowner.R;
-import com.sundowner.util.LocalNativeAccountData;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,10 +29,11 @@ public class ComposeView extends LinearLayout {
 
         editText = (EditText)findViewById(R.id.text);
         editText.addTextChangedListener(new ContentTextWatcher());
+    }
 
-        TextView author = (TextView)findViewById(R.id.author);
-        String userName = LocalNativeAccountData.load(context).userName;
-        author.setText(userName);
+    public void setAuthor(String author) {
+        TextView tv = (TextView)findViewById(R.id.author);
+        tv.setText(author);
     }
 
     public Map<String, String> getParsedText() {
