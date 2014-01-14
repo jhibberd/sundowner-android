@@ -23,7 +23,7 @@
             />
         <meta-data
             android:name="com.sundowner.ServerHost"
-            android:value="khann.org"
+            android:value="soaptag.org"
             />
         <meta-data
             android:name="com.sundowner.ServerPort"

@@ -40,13 +40,13 @@ public class ContentArrayAdapter extends ArrayAdapter<JSONObject> {
 
         try {
             JSONObject content = data.get(position);
-            String author = content.getString("username");
+            String author = content.has("username") ? content.getString("username") : null;
             String text = content.getString("text");
             String url = content.isNull("url") ? null : content.getString("url");
             view.setContent(text, author, url);
 
         } catch (JSONException e) {
-            Log.d(TAG, "Badly formed JSON from server");
+            Log.e(TAG, "Badly formed JSON from server");
         }
 
         return view;

@@ -47,14 +47,24 @@ public class ContentView extends RelativeLayout {
     }
 
     public void setContent(String text, String author, String url) {
+
         hasURL = url != null;
         Resources res = getResources();
         if (res == null) {
             Log.e(TAG, "Failed to get resources.");
             return;
         }
+
         this.text.setText(text);
-        this.author.setText(author);
+
+        // the author is only show if the tag was created by a friend of the user or the user
+        // themselves.
+        if (author == null) {
+            this.author.setVisibility(View.GONE);
+        } else {
+            this.author.setText(author);
+            this.author.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
