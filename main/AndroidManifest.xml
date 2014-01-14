@@ -23,11 +23,7 @@
             />
         <meta-data
             android:name="com.sundowner.ServerHost"
-            android:value="soaptag.org"
-            />
-        <meta-data
-            android:name="com.sundowner.ServerPort"
-            android:value="8051"
+            android:value="dev.api.soaptag.org"
             />
 
         <service

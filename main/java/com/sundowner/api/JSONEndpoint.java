@@ -27,7 +27,6 @@ public abstract class JSONEndpoint {
     }
 
     private static final String META_DATA_SERVER_HOST = "com.sundowner.ServerHost";
-    private static final String META_DATA_SERVER_PORT = "com.sundowner.ServerPort";
     private static final String TAG = "JSONEndpoint";
     private Context ctx;
     private HTTPMethod method;
@@ -54,10 +53,9 @@ public abstract class JSONEndpoint {
                 return;
             }
             String host = b.getString(META_DATA_SERVER_HOST);
-            int port = b.getInt(META_DATA_SERVER_PORT);
 
             // subclass to define the URI
-            String uriString = String.format("http://%s:%s", host, port);
+            String uriString = String.format("http://%s", host);
             Uri.Builder uriBuilder = Uri.parse(uriString).buildUpon();
             buildURI(uriBuilder);
             Uri uri = uriBuilder.build();
