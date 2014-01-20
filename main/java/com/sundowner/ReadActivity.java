@@ -15,10 +15,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.facebook.Session;
 import com.sundowner.api.EndpointContentGET;
 import com.sundowner.api.EndpointVotesPOST;
 import com.sundowner.util.ContentArrayAdapter;
-import com.sundowner.util.LocalNativeAccountData;
 import com.sundowner.util.LocationService;
 import com.sundowner.view.ContentView;
 import com.sundowner.view.FBLoginFragment;
@@ -30,12 +30,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class ReadActivity extends ListActivity implements
-        EndpointContentGET.Delegate, ContentView.Delegate, ServiceConnection,
-        LocationService.Delegate {
+        EndpointContentGET.Delegate, EndpointVotesPOST.Delegate, ContentView.Delegate,
+        ServiceConnection, LocationService.Delegate {
 
+    public static final String ACTIVITY_EXTRA_USER = "USER";
+    public static final int RESULT_BAD_ACCESS_TOKEN = 1;
     private static final String TAG = "ReadActivity";
+    private static final int REQUEST_CODE_DEFAULT = 1;
     private ArrayList<JSONObject> objects;
     private ContentArrayAdapter adapter;
+    private String user;
     private boolean isLocationServiceBound = false;
 
     @Override
@@ -44,10 +48,16 @@ public class ReadActivity extends ListActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
 
+        user = getIntent().getStringExtra(ACTIVITY_EXTRA_USER);
+
         // hide icon and title from the action bar
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayShowTitleEnabled(false);
+        ActionBar ab = getActionBar();
+        if (ab == null) {
+            Log.e(TAG, "Failed to get action bar.");
+            return;
+        }
+        ab.setDisplayShowHomeEnabled(false);
+        ab.setDisplayShowTitleEnabled(false);
 
         // bind objects array, adapter and list view
         objects = new ArrayList<JSONObject>();
@@ -75,18 +85,19 @@ public class ReadActivity extends ListActivity implements
         }
     }
 
-    public void onEndpointContentGETResponse(JSONObject data) {
+    @Override
+    public void onServerContentGETResponse(JSONObject payload) {
 
         // extract objects from the response data and convert to ArrayList object for compatibility
         // with the adapter
         objects.clear();
         try {
-            JSONArray values = data.getJSONArray("data");
+            JSONArray values = payload.getJSONArray("data");
             int numObjects = values.length();
             for (int i = 0; i < numObjects; i++)
                 objects.add(values.getJSONObject(i));
         } catch (JSONException e) {
-            Log.d(TAG, "Badly formed JSON in server response: " + data.toString());
+            Log.d(TAG, "Badly formed JSON in server response: " + payload.toString());
             return;
         }
 
@@ -96,6 +107,36 @@ public class ReadActivity extends ListActivity implements
 
         adapter.notifyDataSetChanged();
         Log.i(TAG, "Updated displayed content");
+    }
+
+    @Override
+    public void onServerVotePOSTResponse(JSONObject payload) {
+        // no need to take any action following a successful vote
+    }
+
+    @Override
+    public void onServerError(JSONObject payload) {
+
+        int errorCode;
+        try {
+            errorCode = payload.getJSONObject("meta").getInt("code");
+        } catch (JSONException e) {
+            Log.e(TAG, "Badly formed error message");
+            return;
+        }
+
+        switch (errorCode) {
+
+            // if the error response indicates a bad access token then finish the activity with
+            // a status code that indicates this
+            case 100:
+                setResult(RESULT_BAD_ACCESS_TOKEN);
+                onBadAccessToken();
+                break;
+
+            default:
+                Log.e(TAG, "Unknown server error");
+        }
     }
 
     public void onContentViewSingleTap(int position) {
@@ -114,12 +155,11 @@ public class ReadActivity extends ListActivity implements
     public void onContentViewDoubleTap(int position) {
         // notify the server that the content has been voted up
         try {
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
-            String userId = LocalNativeAccountData.load(this).userId;
-
-            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.UP).call();
+            String accessToken = Session.getActiveSession().getAccessToken();
+            new EndpointVotesPOST(
+                this, contentId, accessToken, EndpointVotesPOST.Vote.UP, this).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to up vote content as local content is badly formed");
@@ -129,12 +169,11 @@ public class ReadActivity extends ListActivity implements
     public void onContentViewLongTap(int position) {
         // notify the server that the content has been voted down
         try {
-
             JSONObject content = objects.get(position);
             String contentId = content.getString("id");
-            String userId = LocalNativeAccountData.load(this).userId;
-
-            new EndpointVotesPOST(contentId, userId, EndpointVotesPOST.Vote.DOWN).call();
+            String accessToken = Session.getActiveSession().getAccessToken();
+            new EndpointVotesPOST(
+                this, contentId, accessToken, EndpointVotesPOST.Vote.DOWN, this).call();
 
         } catch (JSONException e) {
             Log.e(TAG, "Failed to down vote content as local content is badly formed");
@@ -143,7 +182,27 @@ public class ReadActivity extends ListActivity implements
 
     private void composeObject() {
         Intent intent = new Intent(this, ComposeActivity.class);
-        startActivity(intent);
+        intent.putExtra(ComposeActivity.ACTIVITY_EXTRA_USER, user);
+        startActivityForResult(intent, REQUEST_CODE_DEFAULT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // if the compose activity closed because of a bad access token, close this activity too
+        // and propagate the error message up the activity stack
+        if (requestCode == REQUEST_CODE_DEFAULT) {
+            if (resultCode == ComposeActivity.RESULT_BAD_ACCESS_TOKEN) {
+                onBadAccessToken();
+            }
+        }
+    }
+
+    private void onBadAccessToken() {
+        FBLoginFragment.closeSession();
+        setResult(RESULT_BAD_ACCESS_TOKEN);
+        finish();
     }
 
     @Override
@@ -188,16 +247,17 @@ public class ReadActivity extends ListActivity implements
     @Override
     public void onLocationUpdate(Location location) {
         Log.i(TAG, "Received location update");
-        // use the current location to asynchronously request nearby objects from the server
-        String userId = LocalNativeAccountData.load(this).userId;
+
+        String accessToken = Session.getActiveSession().getAccessToken();
+
         new EndpointContentGET(
-            location.getLongitude(), location.getLatitude(), userId, this).call();
+            this, location.getLongitude(), location.getLatitude(), accessToken, this).call();
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        FBLoginFragment.closeSession(this);
+        FBLoginFragment.closeSession();
         setResult(RESULT_OK);
         finish();
     }

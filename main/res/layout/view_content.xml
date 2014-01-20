@@ -7,13 +7,16 @@
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
     android:layout_marginTop="5dp"
-    android:padding="10dp"
+    android:paddingBottom="10dp"
     >
     <TextView
         style="@style/ContentText"
         android:id="@+id/text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:textSize="22sp"
         />
     <TextView
@@ -22,6 +25,8 @@
         android:layout_below="@id/text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
         android:textSize="12sp"
         />
     <com.sundowner.view.LikeContentView
@@ -30,5 +35,13 @@
         android:layout_centerInParent="true"
         android:layout_width="77dp"
         android:layout_height="66.5dp"
+        />
+    <View
+        android:id="@+id/urlIndicatorTab"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:background="@drawable/url_indicator_tab"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
         />
 </RelativeLayout>

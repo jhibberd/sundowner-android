@@ -1,26 +1,32 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import org.json.JSONObject;
 
 public class EndpointContentGET extends JSONEndpoint {
 
     public interface Delegate {
-        public void onEndpointContentGETResponse(JSONObject data);
+        public void onServerContentGETResponse(JSONObject payload);
+        public void onServerError(JSONObject payload);
     }
 
+    private static final String TAG = "EndpointContentGET";
     private final double longitude;
     private final double latitude;
-    private final String userId;
+    private final String accessToken;
     private final Delegate delegate;
 
-    public EndpointContentGET(double longitude, double latitude, String userId, Delegate delegate) {
+    public EndpointContentGET(
+            Context ctx, double longitude, double latitude, String accessToken,
+            Delegate delegate) {
 
-        super(HTTPMethod.GET);
+        super(ctx, HTTPMethod.GET);
         this.longitude = longitude;
         this.latitude = latitude;
-        this.userId = userId;
+        this.accessToken = accessToken;
         this.delegate = delegate;
     }
 
@@ -29,11 +35,17 @@ public class EndpointContentGET extends JSONEndpoint {
         uriBuilder.path("/content");
         uriBuilder.appendQueryParameter("lng", String.valueOf(longitude));
         uriBuilder.appendQueryParameter("lat", String.valueOf(latitude));
-        uriBuilder.appendQueryParameter("user_id", userId);
+        uriBuilder.appendQueryParameter("access_token", accessToken);
     }
 
     @Override
-    protected void onResponseReceived(JSONObject data) {
-        delegate.onEndpointContentGETResponse(data);
+    protected void onResponseSuccess(JSONObject payload) {
+        delegate.onServerContentGETResponse(payload);
+    }
+
+    @Override
+    protected void onResponseError(JSONObject payload) {
+        Log.e(TAG, "Error response");
+        delegate.onServerError(payload);
     }
 }

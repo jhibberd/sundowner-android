@@ -31,6 +31,7 @@ public class ContentView extends RelativeLayout {
     private boolean hasURL;
     private TextView text;
     private TextView author;
+    private View urlIndicatorTab;
 
     public ContentView(Context context, int position, Delegate delegate) {
 
@@ -44,17 +45,31 @@ public class ContentView extends RelativeLayout {
         // more efficient when reusing class for new content
         text = (TextView)findViewById(R.id.text);
         author = (TextView)findViewById(R.id.author);
+        urlIndicatorTab = findViewById(R.id.urlIndicatorTab);
     }
 
     public void setContent(String text, String author, String url) {
+
         hasURL = url != null;
         Resources res = getResources();
         if (res == null) {
             Log.e(TAG, "Failed to get resources.");
             return;
         }
+
         this.text.setText(text);
-        this.author.setText(author);
+
+        // the author is only show if the tag was created by a friend of the user or the user
+        // themselves.
+        if (author == null) {
+            this.author.setVisibility(View.GONE);
+        } else {
+            this.author.setText(author);
+            this.author.setVisibility(View.VISIBLE);
+        }
+
+        // if the tag is linked to a URL then visually indicate this in the view
+        urlIndicatorTab.setVisibility(url == null ? View.GONE : View.VISIBLE);
     }
 
     @Override

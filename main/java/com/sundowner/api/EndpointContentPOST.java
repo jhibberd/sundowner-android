@@ -1,5 +1,6 @@
 package com.sundowner.api;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -9,7 +10,8 @@ import org.json.JSONObject;
 public class EndpointContentPOST extends JSONEndpoint {
 
     public interface Delegate {
-        public void onEndpointContentPOSTResponse(JSONObject data);
+        public void onServerContentPOSTResponse(JSONObject payload);
+        public void onServerError(JSONObject payload);
     }
 
     private static final String TAG = "EndpointContentPOST";
@@ -18,20 +20,20 @@ public class EndpointContentPOST extends JSONEndpoint {
     private final float accuracy;
     private final String text;
     private final String url;
-    private final String userId;
+    private final String accessToken;
     private final Delegate delegate;
 
     public EndpointContentPOST(
-            double longitude, double latitude, float accuracy, String text, String url,
-            String userId, Delegate delegate) {
+            Context ctx, double longitude, double latitude, float accuracy, String text,
+            String url, String accessToken, Delegate delegate) {
 
-        super(HTTPMethod.POST);
+        super(ctx, HTTPMethod.POST);
         this.longitude = longitude;
         this.latitude = latitude;
         this.accuracy = accuracy;
         this.text = text;
         this.url = url;
-        this.userId = userId;
+        this.accessToken = accessToken;
         this.delegate = delegate;
     }
 
@@ -51,7 +53,7 @@ public class EndpointContentPOST extends JSONEndpoint {
             if (url != null) {
                 object.put("url", url);
             }
-            object.put("user_id", userId);
+            object.put("access_token", accessToken);
             return object;
         } catch (JSONException e) {
             Log.d(TAG, "Failed to create request body object");
@@ -60,7 +62,13 @@ public class EndpointContentPOST extends JSONEndpoint {
     }
 
     @Override
-    protected void onResponseReceived(JSONObject data) {
-        delegate.onEndpointContentPOSTResponse(data);
+    protected void onResponseSuccess(JSONObject payload) {
+        delegate.onServerContentPOSTResponse(payload);
+    }
+
+    @Override
+    protected void onResponseError(JSONObject payload) {
+        Log.e(TAG, "Error response");
+        delegate.onServerError(payload);
     }
 }

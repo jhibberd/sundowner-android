@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentActivity;
 
 import com.facebook.Session;
 import com.facebook.SessionState;
+import com.sundowner.view.BadAccessTokenDialogFragment;
 import com.sundowner.view.FBLoginFragment;
 
 public class LoggedOutActivity extends FragmentActivity implements
@@ -50,17 +51,30 @@ public class LoggedOutActivity extends FragmentActivity implements
     }
 
     @Override
-    public void onSessionOpen() {
+    public void onSessionOpen(String user) {
         // the Facebook LoginView has notified the class that a Facebook session has been opened
         // so start the logged in activity
-        Intent loggedInActivity = new Intent(this, ReadActivity.class);
-        startActivityForResult(loggedInActivity, START_LOGGED_IN_ACTIVITY_REQUEST_CODE);
+        Intent intent = new Intent(this, ReadActivity.class);
+        intent.putExtra(ReadActivity.ACTIVITY_EXTRA_USER, user);
+        startActivityForResult(intent, START_LOGGED_IN_ACTIVITY_REQUEST_CODE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == START_LOGGED_IN_ACTIVITY_REQUEST_CODE) {
+            switch (resultCode) {
+
+                // The user's Facebook session has been closed following the detecting of a bad
+                // access token and they have been navigated back to the login view. Display a
+                // dialog explaining this.
+                case ReadActivity.RESULT_BAD_ACCESS_TOKEN:
+                    BadAccessTokenDialogFragment dialog = new BadAccessTokenDialogFragment();
+                    dialog.show(getFragmentManager(), "BadAccessTokenDialogFragment");
+                    break;
+            }
+
             fbLoginFragment.onLoggedInViewClose();
         }
     }

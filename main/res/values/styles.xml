@@ -21,7 +21,7 @@
         parent="AppBaseTheme"
         >
         <item name="android:windowNoTitle">true</item>
-        <item name="android:background">@color/app_background</item>
+        <item name="android:windowBackground">@color/app_background</item>
     </style>
 
     <style
